@@ -125,7 +125,7 @@ public class QuadBuilder {
      *  Minecraft's single texture image contains multiple block image parts separated evenly (0.0625 * 0.0625).
      * A block object should only use one block image part in texture, by setting four corners of UV.
      */
-    public Mesh build(BlockSide blockSide, Vector3 offset, Vector2[] uv) {
+    public Mesh build(BlockSide blockSide, Vector3 offset, MeshUtils.BlockType blockType) {
           Mesh _mesh = new Mesh();
      _mesh.name = "ScriptedQuad";
 
@@ -134,10 +134,10 @@ public class QuadBuilder {
      Vector2[] uvs = new Vector2[4];
      int[] triangles = new int[6];
 
-     Vector2 uv00 = uv[0];
-     Vector2 uv10 = uv[1];
-     Vector2 uv01 = uv[2];
-     Vector2 uv11 = uv[3];
+     Vector2 uv00 = MeshUtils.blockUVs[(int)blockType, 0];
+     Vector2 uv10 = MeshUtils.blockUVs[(int)blockType, 1];
+     Vector2 uv01 = MeshUtils.blockUVs[(int)blockType, 2];
+     Vector2 uv11 = MeshUtils.blockUVs[(int)blockType, 3];
 
      Vector3 p0 = new Vector3(-0.5f, -0.5f, 0.5f) + offset;
      Vector3 p1 = new Vector3(0.5f, -0.5f, 0.5f) + offset;

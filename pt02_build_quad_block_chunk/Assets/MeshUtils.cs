@@ -9,6 +9,42 @@ using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityE
  */
 
 public static class MeshUtils {
+    
+    public enum BlockType {
+        // A grass has green top and dirt side/bottom.
+        GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND
+    }
+
+    /**
+     * UV positions of different types of blocks in the texture. Each block's UV size is 0.0625 * 0.0625. 
+     */
+    public static Vector2[,] blockUVs = { {
+            // Grass Top
+            new Vector2(0.125f, 0.375f), new Vector2(0.1875f, 0.375f),
+            new Vector2(0.125f, 0.4375f), new Vector2(0.1875f, 0.4375f)
+        }, { 
+            // Grass Side
+            new Vector2(0.1875f, 0.9375f), new Vector2(0.25f, 0.9375f),
+            new Vector2(0.1875f, 1.0f), new Vector2(0.25f, 1.0f)
+        }, {
+            // Dirt
+            new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f),
+            new Vector2(0.125f, 1.0f), new Vector2(0.1875f, 1.0f)
+        }, {
+            // Water
+            new Vector2(0.875f, 0.125f), new Vector2(0.9375f, 0.125f),
+            new Vector2(0.875f, 0.1875f), new Vector2(0.9375f, 0.1875f)
+        }, {
+            // Stone
+            new Vector2(0.0f, 0.875f), new Vector2(0.0625f, 0.875f),
+            new Vector2(0.0f, 0.9375f), new Vector2(0.0625f, 0.9375f)
+        }, {
+            // Sand
+            new Vector2(0.125f, 0.875f), new Vector2(0.1875f, 0.875f),
+            new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f)
+        }
+    };
+    
     /**
      * In this example project, this will be used to merge quad meshes to create a cube.
      */

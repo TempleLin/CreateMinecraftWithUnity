@@ -12,6 +12,9 @@ public class TexturedBlock : MonoBehaviour {
      * Material containing Minecraft texture.
      */
     [SerializeField] private Material atlas;
+
+    [SerializeField] private MeshUtils.BlockType _topBlockType;
+    [SerializeField] private MeshUtils.BlockType _sideBottomBlockType;
     
     private void Start() {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -22,24 +25,19 @@ public class TexturedBlock : MonoBehaviour {
         QuadBuilder quadBuilder = new QuadBuilder();
 
         /*
-         *  UV for the block image in texture. Each Minecraft block has UV size of 0.0625 * 0.0625
-         * separated evenly.
-         */
-        Vector2[] atlasUVs = {
-            new Vector2(0.125f, 0.9375f), new Vector2(0.1875f, 0.9375f), 
-            new Vector2(0.125f, 1.0f), new Vector2(0.1875f, 1.0f)
-        };
-        
-        /*
          * Create all quads of a mesh.
          */
         Mesh[] quadsMeshes = {
-            quadBuilder.build(BlockSide.BOTTOM, new Vector3(0, 0, 0), atlasUVs),
-            quadBuilder.build(BlockSide.TOP, new Vector3(0, 0, 0), atlasUVs),
-            quadBuilder.build(BlockSide.LEFT, new Vector3(0, 0, 0), atlasUVs),
-            quadBuilder.build(BlockSide.RIGHT, new Vector3(0, 0, 0), atlasUVs),
-            quadBuilder.build(BlockSide.FRONT, new Vector3(0, 0, 0), atlasUVs),
-            quadBuilder.build(BlockSide.BACK, new Vector3(0, 0, 0), atlasUVs),
+            /*
+            *  Third arg is UV for the block image in texture. Each Minecraft block has UV size of 0.0625 * 0.0625
+            * separated evenly.
+            */
+            quadBuilder.build(BlockSide.TOP, new Vector3(0, 0, 0), _topBlockType),
+            quadBuilder.build(BlockSide.BOTTOM, new Vector3(0, 0, 0), _sideBottomBlockType),
+            quadBuilder.build(BlockSide.LEFT, new Vector3(0, 0, 0), _sideBottomBlockType),
+            quadBuilder.build(BlockSide.RIGHT, new Vector3(0, 0, 0), _sideBottomBlockType),
+            quadBuilder.build(BlockSide.FRONT, new Vector3(0, 0, 0), _sideBottomBlockType),
+            quadBuilder.build(BlockSide.BACK, new Vector3(0, 0, 0), _sideBottomBlockType),
         };
 
         /*
