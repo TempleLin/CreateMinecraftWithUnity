@@ -32,11 +32,4 @@ public class Block : MonoBehaviour {
         _meshFilter.mesh = MeshUtils.mergeMeshes(quadsMeshes);
         _meshFilter.mesh.name = "Cube_0_0_0";
     }
-    
-    public enum BlockSide {
-        BOTTOM, TOP,
-        LEFT, RIGHT,
-        FRONT, BACK
-    };
-
 }
