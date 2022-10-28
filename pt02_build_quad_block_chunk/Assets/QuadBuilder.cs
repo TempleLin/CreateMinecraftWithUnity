@@ -53,7 +53,7 @@ public class QuadBuilder {
     /**
      * Call this if the target mesh is to build a quad that's part of a complete block, instead of just one quad as mesh.
      */
-    public Mesh build(BlockSide blockSide, Vector3 offset) {
+    public Mesh build(MeshUtils.BlockSide blockSide, Vector3 offset) {
      Mesh _mesh = new Mesh();
      _mesh.name = "ScriptedQuad";
 
@@ -77,32 +77,32 @@ public class QuadBuilder {
      Vector3 p7 = new Vector3(-0.5f, 0.5f, -0.5f) + offset;
 
      switch (blockSide) {
-      case BlockSide.FRONT:
+      case MeshUtils.BlockSide.FRONT:
        vertices = new [] { p4, p5, p1, p0 };
        normals = new [] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.BACK:
+      case MeshUtils.BlockSide.BACK:
        vertices = new [] { p6, p7, p3, p2 };
        normals = new [] { Vector3.back, Vector3.back, Vector3.back, Vector3.back };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.BOTTOM:
+      case MeshUtils.BlockSide.BOTTOM:
        vertices = new[] { p0, p1, p2, p3 };
        normals = new[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.TOP:
+      case MeshUtils.BlockSide.TOP:
        vertices = new[] { p7, p6, p5, p4 };
        normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.LEFT:
+      case MeshUtils.BlockSide.LEFT:
        vertices = new[] { p7, p4, p0, p3 };
        normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.RIGHT:
+      case MeshUtils.BlockSide.RIGHT:
        vertices = new[] { p5, p6, p2, p1 };
        normals = new[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right };
        uvs = new [] { uv11, uv01, uv00, uv10 };
@@ -125,7 +125,7 @@ public class QuadBuilder {
      *  Minecraft's single texture image contains multiple block image parts separated evenly (0.0625 * 0.0625).
      * A block object should only use one block image part in texture, by setting four corners of UV.
      */
-    public Mesh build(BlockSide blockSide, Vector3 offset, MeshUtils.BlockType blockType) {
+    public Mesh build(MeshUtils.BlockSide blockSide, Vector3 offset, MeshUtils.BlockType blockType) {
           Mesh _mesh = new Mesh();
      _mesh.name = "ScriptedQuad";
 
@@ -149,32 +149,32 @@ public class QuadBuilder {
      Vector3 p7 = new Vector3(-0.5f, 0.5f, -0.5f) + offset;
 
      switch (blockSide) {
-      case BlockSide.FRONT:
+      case MeshUtils.BlockSide.FRONT:
        vertices = new [] { p4, p5, p1, p0 };
        normals = new [] { Vector3.forward, Vector3.forward, Vector3.forward, Vector3.forward };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.BACK:
+      case MeshUtils.BlockSide.BACK:
        vertices = new [] { p6, p7, p3, p2 };
        normals = new [] { Vector3.back, Vector3.back, Vector3.back, Vector3.back };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.BOTTOM:
+      case MeshUtils.BlockSide.BOTTOM:
        vertices = new[] { p0, p1, p2, p3 };
        normals = new[] { Vector3.down, Vector3.down, Vector3.down, Vector3.down };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.TOP:
+      case MeshUtils.BlockSide.TOP:
        vertices = new[] { p7, p6, p5, p4 };
        normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.LEFT:
+      case MeshUtils.BlockSide.LEFT:
        vertices = new[] { p7, p4, p0, p3 };
        normals = new[] { Vector3.up, Vector3.up, Vector3.up, Vector3.up };
        uvs = new [] { uv11, uv01, uv00, uv10 };
        break;
-      case BlockSide.RIGHT:
+      case MeshUtils.BlockSide.RIGHT:
        vertices = new[] { p5, p6, p2, p1 };
        normals = new[] { Vector3.right, Vector3.right, Vector3.right, Vector3.right };
        uvs = new [] { uv11, uv01, uv00, uv10 };

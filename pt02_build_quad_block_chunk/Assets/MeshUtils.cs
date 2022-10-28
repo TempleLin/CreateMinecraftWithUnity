@@ -9,6 +9,14 @@ using VertexData = System.Tuple<UnityEngine.Vector3, UnityEngine.Vector3, UnityE
  */
 
 public static class MeshUtils {
+    public enum BlockSide {
+        BOTTOM,
+        TOP,
+        LEFT,
+        RIGHT,
+        FRONT,
+        BACK
+    }
     
     public enum BlockType {
         // A grass has green top and dirt side/bottom.
