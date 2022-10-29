@@ -331,6 +331,9 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   atlas: {fileID: 2100000, guid: f0aab9ff2470e054781046125f6bfcc0, type: 2}
+  width: 5
+  height: 5
+  depth: 5
 --- !u!4 &2114949583
 Transform:
   m_ObjectHideFlags: 0

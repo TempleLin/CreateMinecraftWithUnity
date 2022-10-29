@@ -22,9 +22,9 @@ public class Chunk : MonoBehaviour {
      * A chunk should have width, height, and depth.
      */
     [SerializeField] private int width = 2; // X coordinate
-    [SerializeField] private int depth = 2; // Z coordinate
     [SerializeField] private int height = 2; // Y coordinate
-    
+    [SerializeField] private int depth = 2; // Z coordinate
+
     /**
      * Take a look at Quad.cs to understand these fields.
      */
