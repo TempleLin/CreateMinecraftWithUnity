@@ -26,12 +26,17 @@ public class ChunkBuilder {
      */
     private Mesh[,,] blockMeshes;
 
-    /**
-     * Block type of all blocks in chunk. Uses single loop for faster processing.
-     *
-     * (Flat[x + WIDTH * (Y + DEPTH *z)] = Original[x, y, z])
-     */
-    private MeshUtils.BlockType[] chunkData;
+    /// Block type of all blocks in chunk. Uses single loop for faster processing.
+    /// 
+    /// (formula: Flat[x + WIDTH * (Y + DEPTH *z)] = Original[x, y, z])
+    ///
+    /// Make sure that size of this array matches the total count of blocks in chunk
+    /// with specified width, height, and depth.
+    /// 
+    /// This member gets set when .build() gets called. As needed content blocks might
+    /// be different everytime a new chunk gets built.  
+    /// 
+    private MeshUtils.BlockType[] blocksTypes;
     
     public ChunkBuilder(int width, int height, int depth) {
         this.width = width;
@@ -39,12 +44,19 @@ public class ChunkBuilder {
         this.depth = depth;
     }
     
-    public Mesh build() {
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="blocksTypes">
+    ///     All blocks needed to be built in the chunk.
+    /// </param>
+    /// <returns></returns>
+    public Mesh build(MeshUtils.BlockType[] blocksTypes) {
         BlockBuilder blockBuilder = new BlockBuilder();
         
         blockMeshes = new Mesh[width, height, depth];
-        
-        buildChunk();
+
+        this.blocksTypes = blocksTypes;
 
         List<Mesh> inputMeshes = new List<Mesh>();
         int vertexStart = 0;
@@ -62,13 +74,12 @@ public class ChunkBuilder {
         for (int z = 0; z < depth; z++) {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    Mesh blockMesh;
-                    MeshUtils.BlockType blockType = chunkData[x + width * (y + depth * z)];
-                    
+                    MeshUtils.BlockType blockType = blocksTypes[x + width * (y + depth * z)];
+
                     /*
                      * Block mesh doesn't need to be built if it's air. Make it null instead.
                      */
-                    blockMesh = blockType is MeshUtils.BlockType.AIR ? 
+                    Mesh blockMesh = blockType is MeshUtils.BlockType.AIR ? 
                         null : blockBuilder.build(this, new Vector3(x, y, z), blockType);
 
                     blockMeshes[x, y, z] = blockMesh;
@@ -149,21 +160,7 @@ public class ChunkBuilder {
 
         return newMesh;
     }
-    
-    /// <summary>
-    /// This is the essential function to do the landscaping. It configures all blocks' data in chunk.
-    /// </summary>
-    private void buildChunk() {
-        int blockCount = width * depth * height;
-        chunkData = new MeshUtils.BlockType[blockCount];
-        for (int i = 0; i < blockCount; i++) {
-            if (UnityEngine.Random.Range(0, 100) < 50)
-                chunkData[i] = MeshUtils.BlockType.DIRT;
-            else
-                chunkData[i] = MeshUtils.BlockType.AIR;
-        }
-    }
-    
+
     [BurstCompile]
     struct ProcessMeshDataJob : IJobParallelFor {
         /**
@@ -272,5 +269,5 @@ public class ChunkBuilder {
     public int Height => height;
     public int Depth => depth;
     
-    public MeshUtils.BlockType[] ChunkData => chunkData;
+    public MeshUtils.BlockType[] BlocksTypes => blocksTypes;
 }

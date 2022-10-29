@@ -1,10 +1,4 @@
-using System.Collections.Generic;
-using Unity.Collections;
 using UnityEngine;
-using Unity.Burst;
-using Unity.Jobs;
-using Unity.Mathematics;
-using UnityEngine.Rendering;
 
 /**
  * A chunk represents the largest mesh that you want to have within your world environment.
@@ -22,13 +16,20 @@ public class Chunk : MonoBehaviour {
      * A chunk should have width, height, and depth.
      */
     [SerializeField] private int width = 2; // X coordinate
+
     [SerializeField] private int height = 2; // Y coordinate
     [SerializeField] private int depth = 2; // Z coordinate
+
+    /**
+     * All the blocks' types in the chunk.
+     */
+    private MeshUtils.BlockType[] _blocksTypes;
 
     /**
      * Take a look at Quad.cs to understand these fields.
      */
     private MeshFilter _meshFilter;
+
     private MeshRenderer _meshRenderer;
 
     private void Start() {
@@ -36,9 +37,24 @@ public class Chunk : MonoBehaviour {
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlas;
 
-        ChunkBuilder chunkBuilder = new ChunkBuilder(width, height, depth);
-        Mesh newMesh = chunkBuilder.build();
+        var chunkBuilder = new ChunkBuilder(width, height, depth);
+        buildChunk();
+        var newMesh = chunkBuilder.build(_blocksTypes);
 
         _meshFilter.mesh = newMesh;
+    }
+
+    /// <summary>
+    /// This is the essential function to do the landscaping in the further examples. It configures all blocks' data in
+    /// chunk.
+    /// </summary>
+    private void buildChunk() {
+        var blockCount = width * depth * height;
+        _blocksTypes = new MeshUtils.BlockType[blockCount];
+        for (var i = 0; i < blockCount; i++)
+            if (Random.Range(0, 100) < 50)
+                _blocksTypes[i] = MeshUtils.BlockType.DIRT;
+            else
+                _blocksTypes[i] = MeshUtils.BlockType.AIR;
     }
 }

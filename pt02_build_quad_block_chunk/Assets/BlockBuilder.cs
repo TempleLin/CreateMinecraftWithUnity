@@ -130,7 +130,7 @@ public class BlockBuilder {
         // Check if the neighbour block is at the edge of the chunk.
         if (x < 0 || x >= parentChunk.Width || y < 0 || y >= parentChunk.Height || z < 0 ||
             z >= parentChunk.Depth) return false;
-        MeshUtils.BlockType blockType = parentChunk.ChunkData[x + parentChunk.Width * (y + parentChunk.Depth * z)];
+        MeshUtils.BlockType blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
 
         // Not just air, if the neighbour is water, the face still needs to be rendered, since water is half transparent.
         if (blockType == MeshUtils.BlockType.AIR || blockType == MeshUtils.BlockType.WATER) return false;
