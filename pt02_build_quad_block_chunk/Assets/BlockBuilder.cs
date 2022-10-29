@@ -15,11 +15,9 @@ public class BlockBuilder {
         /*
          * Create all quads of a mesh.
          */
-        return buildMesh(null, offset, MeshUtils.BlockType.AIR, 
-            _quadBuilder.build(MeshUtils.BlockSide.TOP, offset),
+        return buildMesh(null, offset, MeshUtils.BlockType.AIR, _quadBuilder.build(MeshUtils.BlockSide.TOP, offset),
             _quadBuilder.build(MeshUtils.BlockSide.BOTTOM, offset),
-            _quadBuilder.build(MeshUtils.BlockSide.LEFT, offset), 
-            _quadBuilder.build(MeshUtils.BlockSide.RIGHT, offset),
+            _quadBuilder.build(MeshUtils.BlockSide.LEFT, offset), _quadBuilder.build(MeshUtils.BlockSide.RIGHT, offset),
             _quadBuilder.build(MeshUtils.BlockSide.FRONT, offset),
             _quadBuilder.build(MeshUtils.BlockSide.BACK, offset));
     }
@@ -53,8 +51,8 @@ public class BlockBuilder {
     }
 
     /// <summary>
-    /// Building a final block mesh. This function will make sure that unnecessary faces won't be rendered, by checking
-    /// each sides of the neighbours.
+    ///     Building a final block mesh. This function will make sure that unnecessary faces won't be rendered, by checking
+    ///     each sides of the neighbours.
     /// </summary>
     /// <param name="parentChunk"></param>
     /// <param name="blockType">Type of the block to build into.</param>
@@ -66,8 +64,8 @@ public class BlockBuilder {
     /// <param name="frontQuad"></param>
     /// <param name="backQuad"></param>
     /// <returns></returns>
-    private Mesh buildMesh(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad, Mesh botQuad,
-        Mesh leftQuad, Mesh rightQuad, Mesh frontQuad, Mesh backQuad) {
+    private Mesh buildMesh(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad,
+        Mesh botQuad, Mesh leftQuad, Mesh rightQuad, Mesh frontQuad, Mesh backQuad) {
         // Only quads that need to be rendered will be added to this list.
         var filteredQuadsMeshes = new List<Mesh>();
 
@@ -107,20 +105,20 @@ public class BlockBuilder {
 
         Debug.Log("Quads count: " + filteredQuadsMeshes.Count);
         Debug.Log("Filtered quads meshes count: " + filteredQuadsMeshes.Count);
-        
+
         if (filteredQuadsMeshes.Count == 0) return null;
-        
+
         /*
         * Merge all the quad meshes into single mesh through this custom utility method.
         */
-        Mesh mesh = MeshUtils.mergeMeshes(filteredQuadsMeshes.ToArray());
+        var mesh = MeshUtils.mergeMeshes(filteredQuadsMeshes.ToArray());
         return mesh;
     }
 
     /// <summary>
-    /// For use to judge if the block has neighbours. A block should check for neighbour blocks in 6 sides of direction,
-    /// with the help of parent Chunk data. If a side has neighbour block, the face doesn't need to be rendered, thus
-    /// saves memory.
+    ///     For use to judge if the block has neighbours. A block should check for neighbour blocks in 6 sides of direction,
+    ///     with the help of parent Chunk data. If a side has neighbour block, the face doesn't need to be rendered, thus
+    ///     saves memory.
     /// </summary>
     /// <param name="parentChunk">Parent chunk containing current block and neighbour blocks.</param>
     /// <param name="x">Neighbour block x offset.</param>
@@ -130,7 +128,7 @@ public class BlockBuilder {
         // Check if the neighbour block is at the edge of the chunk.
         if (x < 0 || x >= parentChunk.Width || y < 0 || y >= parentChunk.Height || z < 0 ||
             z >= parentChunk.Depth) return false;
-        MeshUtils.BlockType blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
+        var blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
 
         // Not just air, if the neighbour is water, the face still needs to be rendered, since water is half transparent.
         if (blockType == MeshUtils.BlockType.AIR || blockType == MeshUtils.BlockType.WATER) return false;
