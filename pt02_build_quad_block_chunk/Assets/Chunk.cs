@@ -1,4 +1,10 @@
+using System.Collections.Generic;
+using Unity.Collections;
 using UnityEngine;
+using Unity.Burst;
+using Unity.Jobs;
+using Unity.Mathematics;
+using UnityEngine.Rendering;
 
 /**
  * A chunk represents the largest mesh that you want to have within your world environment.
@@ -11,13 +17,14 @@ public class Chunk : MonoBehaviour {
      * Material containing Minecraft texture.
      */
     [SerializeField] private Material atlas;
-    private readonly int depth = 2; // Z coordinate
-    private readonly int height = 2; // Y coordinate
 
     /**
      * A chunk should have width, height, and depth.
      */
-    private readonly int width = 2; // X coordinate
+    [SerializeField] private int width = 2; // X coordinate
+    [SerializeField] private int depth = 2; // Z coordinate
+    [SerializeField] private int height = 2; // Y coordinate
+    
     /**
      * Take a look at Quad.cs to understand these fields.
      */
@@ -30,7 +37,7 @@ public class Chunk : MonoBehaviour {
      * This can let game know the position of each block (x,y,z), position of a chunk(chunkSize, chunkSize, chunkSize),
      * and positioning the chunks next to each other and not overlap the blocks.
      */
-    private Mesh[,,] blocks;
+    private Mesh[,,] blockMeshes;
 
     private void Start() {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
@@ -39,12 +46,174 @@ public class Chunk : MonoBehaviour {
 
         BlockBuilder blockBuilder = new BlockBuilder();
         
-        blocks = new Mesh[width, height, depth];
+        blockMeshes = new Mesh[width, height, depth];
+
+        List<Mesh> inputMeshes = new List<Mesh>(width * height * depth);
+        int vertexStart = 0;
+        int triStart = 0;
+        int meshCount = width * height * depth;
+        int m = 0;
+        ProcessMeshDataJob jobs = new ProcessMeshDataJob();
+        
+        /*
+         * Building block meshes into chunk is a slow process. To boost up the performance, this project uses Burst compiler and Job system.  
+         */
+        jobs.vertexStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
+        jobs.triStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory);
 
         for (int z = 0; z < depth; z++) {
             for (int y = 0; y < height; y++) {
                 for (int x = 0; x < width; x++) {
-                    blocks[x, y, z] = blockBuilder.build(new Vector3(x, y, z), MeshUtils.BlockType.DIRT, MeshUtils.BlockType.DIRT);
+                    Mesh blockMesh = blockBuilder.build(new Vector3(x, y, z), MeshUtils.BlockType.DIRT, MeshUtils.BlockType.DIRT);
+                    blockMeshes[x, y, z] = blockMesh;
+                    inputMeshes.Add(blockMesh);
+                    int vCount = blockMesh.vertexCount;
+                    /*
+                     * "0" mesh sub-mesh 0. In this project, a block mesh only has the main mesh itself, no other sub-meshes.
+                     */
+                    int iCount = (int) blockMesh.GetIndexCount(0);
+                    jobs.vertexStart[m] = vertexStart;
+                    jobs.triStart[m] = triStart;
+                    vertexStart += vCount;
+                    triStart += iCount;
+                    m++;
+                }
+            }
+        }
+
+        jobs.meshData = Mesh.AcquireReadOnlyMeshData(inputMeshes);
+        /*
+         * Allocates data structures for Mesh creation using C# Jobs.
+         */
+        Mesh.MeshDataArray outputMeshData = Mesh.AllocateWritableMeshData(1);
+        
+        jobs.outputMesh = outputMeshData[0];
+        jobs.outputMesh.SetIndexBufferParams(triStart, IndexFormat.UInt32);
+        
+        /*
+         * These assigned streams will be used in ProcessMeshDataJob.Execute() below.
+         */
+        jobs.outputMesh.SetVertexBufferParams(vertexStart,
+            new VertexAttributeDescriptor(VertexAttribute.Position), // Position: vertex.
+            new VertexAttributeDescriptor(VertexAttribute.Normal, stream: 1),
+            new VertexAttributeDescriptor(VertexAttribute.TexCoord0, stream: 2)); // TexCoord0: First UV in shader.
+
+        /*
+         * "4": Count of jobs to do.
+         */
+        JobHandle handle = jobs.Schedule(meshCount, 4);
+        Mesh newMesh = new Mesh();
+        newMesh.name = "Chunk";
+        SubMeshDescriptor subMeshDescriptor = new SubMeshDescriptor(0, triStart, MeshTopology.Triangles);
+        subMeshDescriptor.firstVertex = 0;
+        subMeshDescriptor.vertexCount = vertexStart;
+        
+        /*
+         * Wait for jobs to complete.
+         */
+        handle.Complete();
+        jobs.outputMesh.subMeshCount = 1;
+        jobs.outputMesh.SetSubMesh(0, subMeshDescriptor);
+        
+        
+        Mesh.ApplyAndDisposeWritableMeshData(outputMeshData, new []{ newMesh });
+        jobs.meshData.Dispose();
+        jobs.vertexStart.Dispose();
+        jobs.triStart.Dispose();
+        
+        /*
+         * Recalculate colliders.
+         */
+        newMesh.RecalculateBounds();
+
+        _meshFilter.mesh = newMesh;
+    }
+    
+    [BurstCompile]
+    struct ProcessMeshDataJob : IJobParallelFor {
+        /**
+         * Will contain all the incoming meshes data for merging.
+         *
+         * Mesh.MeshDataArray type: An array of Mesh data snapshots for C# Job System access.
+         */
+        [ReadOnly] public Mesh.MeshDataArray meshData;
+
+        /**
+         * The mesh to build into. (by merging meshes)
+         */
+        public Mesh.MeshData outputMesh;
+
+        public NativeArray<int> vertexStart;
+        public NativeArray<int> triStart;
+
+        public void Execute(int index) {
+            Mesh.MeshData data = meshData[index];
+            int vCount = data.vertexCount;
+            int vStart = vertexStart[index];
+
+            NativeArray<float3> verts =
+                new NativeArray<float3>(vCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            data.GetVertices(verts.Reinterpret<Vector3>());
+            
+            /*
+             * Normals array will be the same size as verts array. Since every vertex contains a normal.
+             */
+            NativeArray<float3> normals = 
+                new NativeArray<float3>(vCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            data.GetNormals(normals.Reinterpret<Vector3>());
+            
+            /*
+             *  With Unity's job system, if trying to get the data out using Vector2 instead of Vector3,
+             * will produce weird results. (Not sure if it's fixed yet, needs further confirmation.)
+             */
+            NativeArray<float3> uvs = 
+                new NativeArray<float3>(vCount, Allocator.Temp, NativeArrayOptions.UninitializedMemory);
+            /*
+             *  First arg is the channel. A vertex can contain multiple UVs. Multi-channels will be used later
+             * in the course (such as cracks on a block when trying to mine them in Minecraft) 
+             */
+            data.GetUVs(0, uvs.Reinterpret<Vector3>());
+
+            /*
+             *  MeshData container contains streams within. First stream is the vertices; second is the normal;
+             * third is the UVs.
+             */
+            NativeArray<Vector3> outputVerts = outputMesh.GetVertexData<Vector3>();
+            NativeArray<Vector3> outputNormals = outputMesh.GetVertexData<Vector3>(stream: 1);
+            NativeArray<Vector3> outputUVs = outputMesh.GetVertexData<Vector3>(stream: 2);
+
+            for (int i = 0; i < vCount; i++) {
+                outputVerts[i + vStart] = verts[i];
+                outputNormals[i + vStart] = normals[i];
+                outputUVs[i + vStart] = uvs[i];
+            }
+
+            /*
+             * Native arrays are unmanaged. Disposing them manually is required.
+             */
+            verts.Dispose();
+            normals.Dispose();
+            uvs.Dispose();
+
+
+            int tStart = triStart[index];
+            int tCount = data.GetSubMesh(0).indexCount;
+            NativeArray<int> outputTris = outputMesh.GetIndexData<int>(); // Triangles of the output mesh.
+            
+            /*
+             * Some platforms use UInt16 (ex. Android), some UInt32 (ex. Desktop).
+             */
+            if (data.indexFormat == IndexFormat.UInt16) {
+                NativeArray<ushort> tris = data.GetIndexData<ushort>(); // Triangles of the current mesh in process.
+                for (int i = 0; i < tCount; i++) {
+                    int idx = tris[i];
+                    outputTris[i + tStart] = vStart + idx;
+                }
+            } else { //UInt32
+                NativeArray<int> tris = data.GetIndexData<int>();
+                for (int i = 0; i < tCount; i++) {
+                    int idx = tris[i];
+                    outputTris[i + tStart] = vStart + idx;
                 }
             }
         }

@@ -2,8 +2,8 @@ Remember that "Blockatlas.png" texture image has "Alpha is Transparency" ticked,
 
 Also edit "Advanced > Non-Power of 2" to "None". This disables resizing the image size to 2^x * 2^y.
 
-"Rendering Mode" for "Atlas" material should also be "Transparent", so that transparent part of the image texture
-also renders as transparent in material.
+"Rendering Mode" for "Atlas" material should also be "Opaque", If it's set to "Transparent", the textures on the mesh
+will fight for visibility and produce a mesh that will have inner texture getting rendered.
 
 "Advanced > Filter Mode", change from "Bilinear" to "Point(no filter)". Because the original filter mode interpolates
 the pixels in corners with nearby block UVs, causing blurry and mixed pixels in corners. Turning it to point makes
