@@ -121,7 +121,7 @@ public class QuadBuilder {
     }
 
     /**
-     *  Call this when if the block uses a texture, and needs to assign specific UV of the image to texture.
+     *  Call this when if the parent block uses a texture, and needs to assign specific UV of the image to texture.
      *  Minecraft's single texture image contains multiple block image parts separated evenly (0.0625 * 0.0625).
      * A block object should only use one block image part in texture, by setting four corners of UV.
      */

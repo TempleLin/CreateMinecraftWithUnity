@@ -23,7 +23,7 @@ public class TexturedBlock : MonoBehaviour {
         _meshRenderer.material = atlas;
 
         BlockBuilder blockBuilder = new BlockBuilder();
-        Mesh mesh = blockBuilder.build(new Vector3(0, 0, 0), _topBlockType, _sideBottomBlockType);
+        Mesh mesh = blockBuilder.build(null, new Vector3(0, 0, 0), _topBlockType, _sideBottomBlockType);
 
         _meshFilter.mesh = mesh;
         _meshFilter.mesh.name = "Cube_0_0_0";

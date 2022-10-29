@@ -19,8 +19,15 @@ public static class MeshUtils {
     }
     
     public enum BlockType {
-        // A grass has green top and dirt side/bottom.
-        GRASSTOP, GRASSSIDE, DIRT, WATER, STONE, SAND
+        /*
+         * A grass has green top and dirt side/bottom.
+         * Air means empty.
+         *
+         * NOTE:
+         *  Make sure that this enum's members' order are fixed, or their int value be set explicitly.
+         * As member "blockUVs"'s index below corresponds to this enum's members' int value.
+         */
+        GRASSTOP = 0, GRASSSIDE = 1, DIRT = 2, WATER = 3, STONE = 4, SAND = 5, AIR = 6
     }
 
     /**
