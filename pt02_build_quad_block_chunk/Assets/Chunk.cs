@@ -67,13 +67,18 @@ public class Chunk : MonoBehaviour {
                     Mesh blockMesh = blockBuilder.build(new Vector3(x, y, z), MeshUtils.BlockType.DIRT, MeshUtils.BlockType.DIRT);
                     blockMeshes[x, y, z] = blockMesh;
                     inputMeshes.Add(blockMesh);
+
+                    jobs.vertexStart[m] = vertexStart;
+                    jobs.triStart[m] = triStart;
+                    
                     int vCount = blockMesh.vertexCount;
                     /*
                      * "0" mesh sub-mesh 0. In this project, a block mesh only has the main mesh itself, no other sub-meshes.
+                     *
+                     * Index count is the count of indices (index buffer) used in the mesh.
                      */
                     int iCount = (int) blockMesh.GetIndexCount(0);
-                    jobs.vertexStart[m] = vertexStart;
-                    jobs.triStart[m] = triStart;
+                    
                     vertexStart += vCount;
                     triStart += iCount;
                     m++;
@@ -84,14 +89,22 @@ public class Chunk : MonoBehaviour {
         jobs.meshData = Mesh.AcquireReadOnlyMeshData(inputMeshes);
         /*
          * Allocates data structures for Mesh creation using C# Jobs.
+         *
+         * "1" is the mesh count that will be created.
          */
         Mesh.MeshDataArray outputMeshData = Mesh.AllocateWritableMeshData(1);
         
         jobs.outputMesh = outputMeshData[0];
+        /*
+         * Sets the index buffer size and format of the Mesh that Unity creates from the MeshData.
+         * These assigned buffer params will be used in ProcessMeshDataJob.Execute() below ("outputMesh.GetIndexData").
+         * "triStart" has been incremented on top and finished at the last one, now it's used as the size of total indices.
+         */
         jobs.outputMesh.SetIndexBufferParams(triStart, IndexFormat.UInt32);
         
         /*
-         * These assigned streams will be used in ProcessMeshDataJob.Execute() below.
+         * These assigned streams will be used in ProcessMeshDataJob.Execute() below ("outputMesh.GetVertexData").
+         * "vertexStart" has been incremented on top and finished at the last one, now it's used as the size of total vertices.
          */
         jobs.outputMesh.SetVertexBufferParams(vertexStart,
             new VertexAttributeDescriptor(VertexAttribute.Position), // Position: vertex.
@@ -175,8 +188,8 @@ public class Chunk : MonoBehaviour {
             data.GetUVs(0, uvs.Reinterpret<Vector3>());
 
             /*
-             *  MeshData container contains streams within. First stream is the vertices; second is the normal;
-             * third is the UVs.
+             *  MeshData container contains streams within (configured in Start() above). First stream is the
+             * vertices; second is the normal; third is the UVs.
              */
             NativeArray<Vector3> outputVerts = outputMesh.GetVertexData<Vector3>();
             NativeArray<Vector3> outputNormals = outputMesh.GetVertexData<Vector3>(stream: 1);
@@ -197,6 +210,9 @@ public class Chunk : MonoBehaviour {
 
 
             int tStart = triStart[index];
+            /*
+             * A block mesh only contains one mesh, no other sub-meshes. Consequently, the index to pass should be 0.
+             */
             int tCount = data.GetSubMesh(0).indexCount;
             NativeArray<int> outputTris = outputMesh.GetIndexData<int>(); // Triangles of the output mesh.
             
