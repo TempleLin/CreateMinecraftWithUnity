@@ -24,7 +24,7 @@ public class BlockBuilder {
             _quadBuilder.build(MeshUtils.BlockSide.BACK, offset));
     }
 
-    public Mesh build(Chunk parentChunk, Vector3 offset, MeshUtils.BlockType blockType) {
+    public Mesh build(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType) {
         return buildMesh(parentChunk, offset, blockType,
             /*
             *  Third arg is UV for the block image in texture. Each Minecraft block has UV size of 0.0625 * 0.0625
@@ -41,7 +41,7 @@ public class BlockBuilder {
     /**
      * Some blocks might have different top but others are same. For example, grass.
      */
-    public Mesh build(Chunk parentChunk, Vector3 offset, MeshUtils.BlockType topBlockType,
+    public Mesh build(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType topBlockType,
         MeshUtils.BlockType sideBottomBlockType) {
         return buildMesh(parentChunk, offset, topBlockType,
             _quadBuilder.build(MeshUtils.BlockSide.TOP, offset, topBlockType),
@@ -66,7 +66,7 @@ public class BlockBuilder {
     /// <param name="frontQuad"></param>
     /// <param name="backQuad"></param>
     /// <returns></returns>
-    private Mesh buildMesh(Chunk parentChunk, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad, Mesh botQuad,
+    private Mesh buildMesh(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad, Mesh botQuad,
         Mesh leftQuad, Mesh rightQuad, Mesh frontQuad, Mesh backQuad) {
         // Only quads that need to be rendered will be added to this list.
         var filteredQuadsMeshes = new List<Mesh>();
@@ -92,7 +92,7 @@ public class BlockBuilder {
                     filteredQuadsMeshes.Add(frontQuad);
                 if (!hasSolidNeighbour(parentChunk, (int)offset.x, (int)offset.y, (int)offset.z - 1))
                     filteredQuadsMeshes.Add(backQuad);
-            } else if (parentChunk == null) {
+            } else {
                 filteredQuadsMeshes = new List<Mesh> {
                     topQuad,
                     botQuad,
@@ -126,7 +126,7 @@ public class BlockBuilder {
     /// <param name="x">Neighbour block x offset.</param>
     /// <param name="y">Neighbour block y offset.</param>
     /// <param name="z">Neighbour block z offset.</param>
-    private bool hasSolidNeighbour(Chunk parentChunk, int x, int y, int z) {
+    private bool hasSolidNeighbour(ChunkBuilder parentChunk, int x, int y, int z) {
         // Check if the neighbour block is at the edge of the chunk.
         if (x < 0 || x >= parentChunk.Width || y < 0 || y >= parentChunk.Height || z < 0 ||
             z >= parentChunk.Depth) return false;
