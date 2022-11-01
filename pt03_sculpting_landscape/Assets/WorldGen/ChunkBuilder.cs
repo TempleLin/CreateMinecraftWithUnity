@@ -28,8 +28,8 @@ public class ChunkBuilder {
     private int depth = 2;
 
     /// <summary>
-    ///     A chunk should have its world location, this will be used as attributes to calculate its height through the Perlin
-    /// Noise algorithm.
+    ///     A chunk should have its world location, this will be used to position chunk in the world terrain. It is
+    /// also used as attributes to calculate its height through the Perlin Noise algorithm.
     /// </summary>
     private Vector3 location = new Vector3(0, 0, 0);
 
