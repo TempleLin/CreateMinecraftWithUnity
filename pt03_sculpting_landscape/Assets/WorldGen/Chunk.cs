@@ -21,11 +21,6 @@ public class Chunk : MonoBehaviour {
     [SerializeField] private int depth = 2; // Z coordinate
 
     /**
-     * All the blocks' types in the chunk.
-     */
-    private MeshUtils.BlockType[] _blocksTypes;
-
-    /**
      * Take a look at Quad.cs to understand these fields.
      */
     private MeshFilter _meshFilter;
@@ -38,23 +33,8 @@ public class Chunk : MonoBehaviour {
         _meshRenderer.material = atlas;
 
         var chunkBuilder = new ChunkBuilder(width, height, depth);
-        buildChunk();
-        var newMesh = chunkBuilder.build(_blocksTypes);
+        var newMesh = chunkBuilder.build();
 
         _meshFilter.mesh = newMesh;
-    }
-
-    /// <summary>
-    /// This is the essential function to do the landscaping in the further examples. It configures all blocks' data in
-    /// chunk.
-    /// </summary>
-    private void buildChunk() {
-        var blockCount = width * depth * height;
-        _blocksTypes = new MeshUtils.BlockType[blockCount];
-        for (var i = 0; i < blockCount; i++)
-            if (Random.Range(0, 100) < 50)
-                _blocksTypes[i] = MeshUtils.BlockType.DIRT;
-            else
-                _blocksTypes[i] = MeshUtils.BlockType.AIR;
     }
 }

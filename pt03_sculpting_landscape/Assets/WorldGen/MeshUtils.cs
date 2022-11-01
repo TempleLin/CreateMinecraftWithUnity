@@ -138,4 +138,27 @@ public static class MeshUtils {
         mesh.normals = norms.ToArray();
         mesh.uv = uvs.ToArray();
     }
+
+    /// <summary>
+    ///     Generating height value from given x and z value, using Perlin Noise. Containing Fractional Brownian Motion algorithm
+    /// in generation.
+    /// Article explaining Fractional Brownian Motion: https://iquilezles.org/articles/fbm/ 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="z"></param>
+    /// <param name="octaves"></param>
+    /// <param name="scale"></param>
+    /// <param name="heightScale"></param>
+    /// <param name="heightOffset"></param>
+    /// <returns></returns>
+    public static float fBM(float x, float z, int octaves, float scale, float heightScale, float heightOffset) {
+        float total = 0;
+        float frequency = 1;
+        for (int i = 0; i < octaves; i++) {
+            total += Mathf.PerlinNoise(x * scale * frequency, z * scale * frequency) * heightScale;
+            frequency *= 2;
+        }
+
+        return total + heightOffset;
+    }
 }
