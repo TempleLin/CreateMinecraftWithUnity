@@ -20,20 +20,19 @@ public class ChunkBuilder {
      */
     private Mesh[,,] blockMeshes;
 
-    public ChunkBuilder(int width, int height, int depth) {
-        Width = width;
-        Height = height;
-        Depth = depth;
-    }
-
     /**
      * A chunk should have width, height, and depth.
      */
-    public int Width { get; }
+    private int width = 2;
+    private int height = 2;
+    private int depth = 2;
 
-    public int Height { get; }
+    /// <summary>
+    ///     A chunk should have its world location, this will be used as attributes to calculate its height through the Perlin
+    /// Noise algorithm.
+    /// </summary>
+    private Vector3 location = new Vector3(0, 0, 0);
 
-    public int Depth { get; }
 
     /// Block type of all blocks in chunk. Uses single loop for faster processing.
     /// 
@@ -51,6 +50,39 @@ public class ChunkBuilder {
     public MeshUtils.BlockType[] BlocksTypes { get; private set; }
     
     /// <summary>
+    /// These are attributes for generating heights for the chunk with Perlin Noise & Fractional Brownian Motion.
+    /// </summary>
+    private float perlinHeightScale = 10;
+    private float perlinScale = 0.001f;
+    private int perlinOctaves = 8;
+    private float perlinHeightOffset = -33;
+
+    
+    public ChunkBuilder() {
+
+    }
+
+    public ChunkBuilder setLocation(int x, int y, int z) {
+        location = new Vector3(x, y, z);
+        return this;
+    }
+
+    public ChunkBuilder setDimensions(int width, int height, int depth) {
+        this.width = width;
+        this.height = height;
+        this.depth = depth;
+        return this;
+    }
+
+    public ChunkBuilder setPerlinAttribs(float heightScale, float scale, int octaves, float heightOffset) {
+        perlinHeightScale = heightScale;
+        perlinScale = scale;
+        perlinOctaves = octaves;
+        perlinHeightOffset = heightOffset;
+        return this;
+    }
+    
+    /// <summary>
     ///     This is the essential function to do the landscaping. It configures all blocks' data in chunk.
     /// Generating heights of the chunk through the use of Perlin Noise with Fractional Brownian Motion
     /// is also configured here.
@@ -59,10 +91,11 @@ public class ChunkBuilder {
         var blockCount = Width * Depth * Height;
         BlocksTypes = new MeshUtils.BlockType[blockCount];
         for (int i = 0; i < blockCount; i++) {
-            int x = i % Width;
-            int y = (i / Width) % Height;
-            int z = i / (Width * Height);
-            if (MeshUtils.fBM(x, z, 8, 0.001f, 10, -33) > y) {
+            // Chunk's world location should be considered to calculate its height in the world using the Perlin Noise algorithm.
+            int x = i % Width + (int)location.x;
+            int y = (i / Width) % Height + (int)location.y;
+            int z = i / (Width * Height) + (int)location.z;
+            if (MeshUtils.fBM(x, z, perlinOctaves, perlinScale, perlinHeightScale, perlinHeightOffset) > y) {
                 BlocksTypes[i] = MeshUtils.BlockType.DIRT;
             } else {
                 BlocksTypes[i] = MeshUtils.BlockType.AIR;
@@ -96,36 +129,40 @@ public class ChunkBuilder {
             triStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory)
         };
 
-        for (int z = 0; z < Depth; z++)
-        for (int y = 0; y < Height; y++)
-        for (int x = 0; x < Width; x++) {
-            MeshUtils.BlockType blockType = BlocksTypes[x + Width * (y + Depth * z)];
+        for (int z = 0; z < Depth; z++) {
+            for (int y = 0; y < Height; y++) {
+                for (int x = 0; x < Width; x++) {
+                    MeshUtils.BlockType blockType = BlocksTypes[x + Width * (y + Depth * z)];
 
-            /*
+                    /*
                      * Block mesh doesn't need to be built if it's air. Make it null instead.
+                     * 
+                     * Location of the chunk should also be considered as block's offset.
                      */
-            Mesh blockMesh = blockType is MeshUtils.BlockType.AIR
-                ? null
-                : blockBuilder.build(this, new Vector3(x, y, z), blockType);
+                    Mesh blockMesh = blockType is MeshUtils.BlockType.AIR
+                        ? null
+                        : blockBuilder.build(this, new Vector3(x, y, z) + location, blockType);
 
-            blockMeshes[x, y, z] = blockMesh;
-            if (blockMesh != null) {
-                inputMeshes.Add(blockMesh);
+                    blockMeshes[x, y, z] = blockMesh;
+                    if (blockMesh != null) {
+                        inputMeshes.Add(blockMesh);
 
-                jobs.vertexStart[m] = vertexStart;
-                jobs.triStart[m] = triStart;
+                        jobs.vertexStart[m] = vertexStart;
+                        jobs.triStart[m] = triStart;
 
-                int vCount = blockMesh.vertexCount;
-                /*
-                         * "0" mesh sub-mesh 0. In this project, a block mesh only has the main mesh itself, no other sub-meshes.
-                         *
-                         * Index count is the count of indices (index buffer) used in the mesh.
-                         */
-                int iCount = (int)blockMesh.GetIndexCount(0);
+                        int vCount = blockMesh.vertexCount;
+                        /*
+                                 * "0" mesh sub-mesh 0. In this project, a block mesh only has the main mesh itself, no other sub-meshes.
+                                 *
+                                 * Index count is the count of indices (index buffer) used in the mesh.
+                                 */
+                        int iCount = (int)blockMesh.GetIndexCount(0);
 
-                vertexStart += vCount;
-                triStart += iCount;
-                m++;
+                        vertexStart += vCount;
+                        triStart += iCount;
+                        m++;
+                    }
+                }
             }
         }
 
@@ -159,7 +196,7 @@ public class ChunkBuilder {
          */
         JobHandle handle = jobs.Schedule(inputMeshes.Count, 4);
         Mesh newMesh = new Mesh();
-        newMesh.name = "Chunk";
+        newMesh.name = "Chunk_" + location.x + '_' + location.y + '_' + location.z;
         SubMeshDescriptor subMeshDescriptor = new SubMeshDescriptor(0, triStart);
         subMeshDescriptor.firstVertex = 0;
         subMeshDescriptor.vertexCount = vertexStart;
@@ -286,4 +323,15 @@ public class ChunkBuilder {
             }
         }
     }
+    
+    public int Width => width;
+    public int Height => height;
+    public int Depth => depth;
+
+    public Vector3 Location => location;
+
+    public float PerlinPerlinHeightScale => perlinHeightScale;
+    public float PerlinPerlinScale => perlinScale;
+    public int PerlinPerlinOctaves => perlinOctaves;
+    public float PerlinPerlinHeightOffset => perlinHeightOffset;
 }

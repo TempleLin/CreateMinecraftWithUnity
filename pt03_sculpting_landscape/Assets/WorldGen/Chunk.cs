@@ -20,6 +20,12 @@ public class Chunk : MonoBehaviour {
     [SerializeField] private int height = 2; // Y coordinate
     [SerializeField] private int depth = 2; // Z coordinate
 
+    [Header("Perlin Settings")] 
+    [SerializeField] private float heightScale = 10;
+    [SerializeField] private float scale = 0.001f;
+    [SerializeField] private int octaves = 8;
+    [SerializeField] private float heightOffset = -33;
+
     /**
      * Take a look at Quad.cs to understand these fields.
      */
@@ -32,8 +38,11 @@ public class Chunk : MonoBehaviour {
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlas;
 
-        var chunkBuilder = new ChunkBuilder(width, height, depth);
-        var newMesh = chunkBuilder.build();
+        ChunkBuilder chunkBuilder = new ChunkBuilder();
+        Mesh newMesh = chunkBuilder
+         .setDimensions(width, height, depth)
+         .setPerlinAttribs(heightScale, scale, octaves, heightOffset)
+         .build();
 
         _meshFilter.mesh = newMesh;
     }

@@ -78,17 +78,24 @@ public class BlockBuilder {
          */
         if (blockType != MeshUtils.BlockType.AIR) {
             if (parentChunk != null) {
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x, (int)offset.y + 1, (int)offset.z))
+
+                /*
+                 *  Passed offset from parent chunk has chunk's world location combined in offset. But calculating solid neighbours should be using
+                 * local positions of the blocks in the chunk.
+                 */
+                Vector3 blockLocalPos = offset - parentChunk.Location;
+                
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y + 1, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(topQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x, (int)offset.y - 1, (int)offset.z))
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y - 1, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(botQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x + 1, (int)offset.y, (int)offset.z))
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x + 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(rightQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x - 1, (int)offset.y, (int)offset.z))
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(leftQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x, (int)offset.y, (int)offset.z + 1))
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z + 1))
                     filteredQuadsMeshes.Add(frontQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)offset.x, (int)offset.y, (int)offset.z - 1))
+                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z - 1))
                     filteredQuadsMeshes.Add(backQuad);
             } else {
                 filteredQuadsMeshes = new List<Mesh> {
@@ -128,7 +135,7 @@ public class BlockBuilder {
         // Check if the neighbour block is at the edge of the chunk.
         if (x < 0 || x >= parentChunk.Width || y < 0 || y >= parentChunk.Height || z < 0 ||
             z >= parentChunk.Depth) return false;
-        var blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
+        MeshUtils.BlockType blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
 
         // Not just air, if the neighbour is water, the face still needs to be rendered, since water is half transparent.
         if (blockType == MeshUtils.BlockType.AIR || blockType == MeshUtils.BlockType.WATER) return false;
