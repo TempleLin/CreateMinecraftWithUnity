@@ -15,10 +15,10 @@ public class Chunk : MonoBehaviour {
     /**
      * A chunk should have width, height, and depth.
      */
-    [SerializeField] private int width = 2; // X coordinate
+    [SerializeField] private int width = 10; // X coordinate
 
-    [SerializeField] private int height = 2; // Y coordinate
-    [SerializeField] private int depth = 2; // Z coordinate
+    [SerializeField] private int height = 10; // Y coordinate
+    [SerializeField] private int depth = 10; // Z coordinate
 
     [Header("Perlin Settings")] 
     [SerializeField] private float heightScale = 10;
@@ -34,16 +34,29 @@ public class Chunk : MonoBehaviour {
     private MeshRenderer _meshRenderer;
 
     private void Start() {
+
+    }
+
+    /// <summary>
+    ///     Gets called from WorldBuilder. Let WorldBuilder decide all the attributes to generate this single chunk.
+    ///     The ChunkBuilder object should be configured in WorldBuilder.
+    /// </summary>
+    /// <param name="chunkBuilder"></param>
+    public void genChunk(ChunkBuilder chunkBuilder) {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlas;
 
-        ChunkBuilder chunkBuilder = new ChunkBuilder();
-        Mesh newMesh = chunkBuilder
-         .setDimensions(width, height, depth)
-         .setPerlinAttribs(heightScale, scale, octaves, heightOffset)
-         .build();
+        Mesh newMesh = chunkBuilder.build();
 
+        width = chunkBuilder.Width;
+        height = chunkBuilder.Height;
+        depth = chunkBuilder.Depth;
+        heightScale = chunkBuilder.PerlinHeightScale;
+        scale = chunkBuilder.PerlinScale;
+        octaves = chunkBuilder.PerlinOctaves;
+        heightOffset = chunkBuilder.PerlinHeightOffset;
+     
         _meshFilter.mesh = newMesh;
     }
 }

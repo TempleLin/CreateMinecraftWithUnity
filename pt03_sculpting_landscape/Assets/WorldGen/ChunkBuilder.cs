@@ -67,10 +67,22 @@ public class ChunkBuilder {
         return this;
     }
 
+    public ChunkBuilder setLocation(Vector3 location) {
+        this.location = location;
+        return this;
+    }
+
     public ChunkBuilder setDimensions(int width, int height, int depth) {
         this.width = width;
         this.height = height;
         this.depth = depth;
+        return this;
+    }
+
+    public ChunkBuilder setDimensions(Vector3 dimensions) {
+        this.width = (int)dimensions.x;
+        this.height = (int)dimensions.y;
+        this.depth = (int)dimensions.z;
         return this;
     }
 
@@ -330,8 +342,8 @@ public class ChunkBuilder {
 
     public Vector3 Location => location;
 
-    public float PerlinPerlinHeightScale => perlinHeightScale;
-    public float PerlinPerlinScale => perlinScale;
-    public int PerlinPerlinOctaves => perlinOctaves;
-    public float PerlinPerlinHeightOffset => perlinHeightOffset;
+    public float PerlinHeightScale => perlinHeightScale;
+    public float PerlinScale => perlinScale;
+    public int PerlinOctaves => perlinOctaves;
+    public float PerlinHeightOffset => perlinHeightOffset;
 }
