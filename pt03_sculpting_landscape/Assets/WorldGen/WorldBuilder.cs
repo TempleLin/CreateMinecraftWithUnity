@@ -17,27 +17,25 @@ public class WorldBuilder : MonoBehaviour {
     /// </summary>
     [SerializeField] private GameObject chunkPrefab;
     private void Start() {
-        int totalChunksCount = 0;
+        // This ChunkBuilder gets built when passed into Chunk prefab's Chunk component.
+        ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
+        
         for (int z = 0; z < worldDimensions.z; z++) {
             for (int y = 0; y < worldDimensions.y; y++) {
                 for (int x = 0; x < worldDimensions.x; x++) {
-                    totalChunksCount++;
                     GameObject chunkObj = Instantiate(chunkPrefab);
                     
                     Vector3 position = new Vector3(x * chunkDimensions.x, y * chunkDimensions.y, z * chunkDimensions.z);
                     
-                    // This ChunkBuilder gets built when passed into Chunk prefab's Chunk component.
-                    ChunkBuilder chunkBuilder = new ChunkBuilder()
+                    chunkMeshBuilder
                         .setLocation(position)
                         .setDimensions(chunkDimensions);
                     
                     Chunk chunk = chunkObj.GetComponent<Chunk>();
-                    chunk.genChunk(chunkBuilder);
+                    chunk.genChunk(chunkMeshBuilder);
                 }
             }
         }
-
-        Debug.Log("Total chunks count:" + totalChunksCount);
     }
 
     public static Vector3 WorldDimensions => worldDimensions;

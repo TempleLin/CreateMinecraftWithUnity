@@ -41,21 +41,21 @@ public class Chunk : MonoBehaviour {
     ///     Gets called from WorldBuilder. Let WorldBuilder decide all the attributes to generate this single chunk.
     ///     The ChunkBuilder object should be configured in WorldBuilder.
     /// </summary>
-    /// <param name="chunkBuilder"></param>
-    public void genChunk(ChunkBuilder chunkBuilder) {
+    /// <param name="chunkMeshBuilder"></param>
+    public void genChunk(ChunkMeshBuilder chunkMeshBuilder) {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlas;
 
-        Mesh newMesh = chunkBuilder.build();
+        Mesh newMesh = chunkMeshBuilder.build();
 
-        width = chunkBuilder.Width;
-        height = chunkBuilder.Height;
-        depth = chunkBuilder.Depth;
-        heightScale = chunkBuilder.PerlinHeightScale;
-        scale = chunkBuilder.PerlinScale;
-        octaves = chunkBuilder.PerlinOctaves;
-        heightOffset = chunkBuilder.PerlinHeightOffset;
+        width = chunkMeshBuilder.Width;
+        height = chunkMeshBuilder.Height;
+        depth = chunkMeshBuilder.Depth;
+        heightScale = chunkMeshBuilder.PerlinHeightScale;
+        scale = chunkMeshBuilder.PerlinScale;
+        octaves = chunkMeshBuilder.PerlinOctaves;
+        heightOffset = chunkMeshBuilder.PerlinHeightOffset;
      
         _meshFilter.mesh = newMesh;
     }

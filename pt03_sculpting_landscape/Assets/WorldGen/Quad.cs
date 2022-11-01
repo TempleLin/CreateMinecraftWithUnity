@@ -13,7 +13,7 @@ public class Quad : MonoBehaviour {
     private void Start() {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
-        QuadBuilder quadBuilder = new QuadBuilder();
-        _meshFilter.mesh = quadBuilder.build();
+        QuadMeshBuilder quadMeshBuilder = new QuadMeshBuilder();
+        _meshFilter.mesh = quadMeshBuilder.build();
     }
 }

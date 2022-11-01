@@ -11,7 +11,7 @@ using UnityEngine.Rendering;
 ///     You can't make an absolutely massive world and expect everything to be in the one mesh.
 ///     A chunk is made up of blocks.
 /// </summary>
-public class ChunkBuilder {
+public class ChunkMeshBuilder {
     /**
      * Use multi-dimensional array to store the blocks into a chunk.
      * 
@@ -58,35 +58,35 @@ public class ChunkBuilder {
     private float perlinHeightOffset = -33;
 
     
-    public ChunkBuilder() {
+    public ChunkMeshBuilder() {
 
     }
 
-    public ChunkBuilder setLocation(int x, int y, int z) {
+    public ChunkMeshBuilder setLocation(int x, int y, int z) {
         location = new Vector3(x, y, z);
         return this;
     }
 
-    public ChunkBuilder setLocation(Vector3 location) {
+    public ChunkMeshBuilder setLocation(Vector3 location) {
         this.location = location;
         return this;
     }
 
-    public ChunkBuilder setDimensions(int width, int height, int depth) {
+    public ChunkMeshBuilder setDimensions(int width, int height, int depth) {
         this.width = width;
         this.height = height;
         this.depth = depth;
         return this;
     }
 
-    public ChunkBuilder setDimensions(Vector3 dimensions) {
+    public ChunkMeshBuilder setDimensions(Vector3 dimensions) {
         this.width = (int)dimensions.x;
         this.height = (int)dimensions.y;
         this.depth = (int)dimensions.z;
         return this;
     }
 
-    public ChunkBuilder setPerlinAttribs(float heightScale, float scale, int octaves, float heightOffset) {
+    public ChunkMeshBuilder setPerlinAttribs(float heightScale, float scale, int octaves, float heightOffset) {
         perlinHeightScale = heightScale;
         perlinScale = scale;
         perlinOctaves = octaves;
@@ -122,7 +122,7 @@ public class ChunkBuilder {
     /// </param>
     /// <returns></returns>
     public Mesh build() {
-        BlockBuilder blockBuilder = new BlockBuilder();
+        BlockMeshBuilder blockMeshBuilder = new BlockMeshBuilder();
 
         blockMeshes = new Mesh[Width, Height, Depth];
 
@@ -153,7 +153,7 @@ public class ChunkBuilder {
                      */
                     Mesh blockMesh = blockType is MeshUtils.BlockType.AIR
                         ? null
-                        : blockBuilder.build(this, new Vector3(x, y, z) + location, blockType);
+                        : blockMeshBuilder.build(this, new Vector3(x, y, z) + location, blockType);
 
                     blockMeshes[x, y, z] = blockMesh;
                     if (blockMesh != null) {

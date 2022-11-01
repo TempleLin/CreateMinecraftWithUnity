@@ -12,8 +12,8 @@ public class Block : MonoBehaviour {
         _meshFilter = gameObject.AddComponent<MeshFilter>();
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
 
-        BlockBuilder blockBuilder = new BlockBuilder();
-        Mesh mesh = blockBuilder.build(new Vector3(0, 0, 0));
+        BlockMeshBuilder blockMeshBuilder = new BlockMeshBuilder();
+        Mesh mesh = blockMeshBuilder.build(new Vector3(0, 0, 0));
         
         _meshFilter.mesh = mesh;
         _meshFilter.mesh.name = "Cube_0_0_0";

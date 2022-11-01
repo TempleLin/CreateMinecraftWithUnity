@@ -35,8 +35,8 @@ public class ChunkExample : MonoBehaviour {
         _meshRenderer = gameObject.AddComponent<MeshRenderer>();
         _meshRenderer.material = atlas;
 
-        ChunkBuilder chunkBuilder = new ChunkBuilder();
-        Mesh newMesh = chunkBuilder
+        ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
+        Mesh newMesh = chunkMeshBuilder
          .setDimensions(width, height, depth)
          .setPerlinAttribs(heightScale, scale, octaves, heightOffset)
          .build();

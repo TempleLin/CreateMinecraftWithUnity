@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class QuadBuilder {
+public class QuadMeshBuilder {
     /**
      *  This will build a quad mesh, so that a gameobject can assign the mesh to its MeshFilter component,
      * which attaches all vertices' data and make a complete mesh data.

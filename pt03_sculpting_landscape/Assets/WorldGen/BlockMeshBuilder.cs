@@ -1,11 +1,11 @@
 ﻿using System.Collections.Generic;
 using UnityEngine;
 
-public class BlockBuilder {
-    private readonly QuadBuilder _quadBuilder;
+public class BlockMeshBuilder {
+    private readonly QuadMeshBuilder _quadMeshBuilder;
 
-    public BlockBuilder() {
-        _quadBuilder = new QuadBuilder();
+    public BlockMeshBuilder() {
+        _quadMeshBuilder = new QuadMeshBuilder();
     }
 
     /**
@@ -15,46 +15,46 @@ public class BlockBuilder {
         /*
          * Create all quads of a mesh.
          */
-        return buildMesh(null, offset, MeshUtils.BlockType.AIR, _quadBuilder.build(MeshUtils.BlockSide.TOP, offset),
-            _quadBuilder.build(MeshUtils.BlockSide.BOTTOM, offset),
-            _quadBuilder.build(MeshUtils.BlockSide.LEFT, offset), _quadBuilder.build(MeshUtils.BlockSide.RIGHT, offset),
-            _quadBuilder.build(MeshUtils.BlockSide.FRONT, offset),
-            _quadBuilder.build(MeshUtils.BlockSide.BACK, offset));
+        return buildMesh(null, offset, MeshUtils.BlockType.AIR, _quadMeshBuilder.build(MeshUtils.BlockSide.TOP, offset),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BOTTOM, offset),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.LEFT, offset), _quadMeshBuilder.build(MeshUtils.BlockSide.RIGHT, offset),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.FRONT, offset),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BACK, offset));
     }
 
-    public Mesh build(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType) {
-        return buildMesh(parentChunk, offset, blockType,
+    public Mesh build(ChunkMeshBuilder parentChunkMesh, Vector3 offset, MeshUtils.BlockType blockType) {
+        return buildMesh(parentChunkMesh, offset, blockType,
             /*
             *  Third arg is UV for the block image in texture. Each Minecraft block has UV size of 0.0625 * 0.0625
             * separated evenly.
             */
-            _quadBuilder.build(MeshUtils.BlockSide.TOP, offset, blockType),
-            _quadBuilder.build(MeshUtils.BlockSide.BOTTOM, offset, blockType),
-            _quadBuilder.build(MeshUtils.BlockSide.LEFT, offset, blockType),
-            _quadBuilder.build(MeshUtils.BlockSide.RIGHT, offset, blockType),
-            _quadBuilder.build(MeshUtils.BlockSide.FRONT, offset, blockType),
-            _quadBuilder.build(MeshUtils.BlockSide.BACK, offset, blockType));
+            _quadMeshBuilder.build(MeshUtils.BlockSide.TOP, offset, blockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BOTTOM, offset, blockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.LEFT, offset, blockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.RIGHT, offset, blockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.FRONT, offset, blockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BACK, offset, blockType));
     }
 
     /**
      * Some blocks might have different top but others are same. For example, grass.
      */
-    public Mesh build(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType topBlockType,
+    public Mesh build(ChunkMeshBuilder parentChunkMesh, Vector3 offset, MeshUtils.BlockType topBlockType,
         MeshUtils.BlockType sideBottomBlockType) {
-        return buildMesh(parentChunk, offset, topBlockType,
-            _quadBuilder.build(MeshUtils.BlockSide.TOP, offset, topBlockType),
-            _quadBuilder.build(MeshUtils.BlockSide.BOTTOM, offset, sideBottomBlockType),
-            _quadBuilder.build(MeshUtils.BlockSide.LEFT, offset, sideBottomBlockType),
-            _quadBuilder.build(MeshUtils.BlockSide.RIGHT, offset, sideBottomBlockType),
-            _quadBuilder.build(MeshUtils.BlockSide.FRONT, offset, sideBottomBlockType),
-            _quadBuilder.build(MeshUtils.BlockSide.BACK, offset, sideBottomBlockType));
+        return buildMesh(parentChunkMesh, offset, topBlockType,
+            _quadMeshBuilder.build(MeshUtils.BlockSide.TOP, offset, topBlockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BOTTOM, offset, sideBottomBlockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.LEFT, offset, sideBottomBlockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.RIGHT, offset, sideBottomBlockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.FRONT, offset, sideBottomBlockType),
+            _quadMeshBuilder.build(MeshUtils.BlockSide.BACK, offset, sideBottomBlockType));
     }
 
     /// <summary>
     ///     Building a final block mesh. This function will make sure that unnecessary faces won't be rendered, by checking
     ///     each sides of the neighbours.
     /// </summary>
-    /// <param name="parentChunk"></param>
+    /// <param name="parentChunkMesh"></param>
     /// <param name="blockType">Type of the block to build into.</param>
     /// <param name="offset"></param>
     /// <param name="topQuad"></param>
@@ -64,7 +64,7 @@ public class BlockBuilder {
     /// <param name="frontQuad"></param>
     /// <param name="backQuad"></param>
     /// <returns></returns>
-    private Mesh buildMesh(ChunkBuilder parentChunk, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad,
+    private Mesh buildMesh(ChunkMeshBuilder parentChunkMesh, Vector3 offset, MeshUtils.BlockType blockType, Mesh topQuad,
         Mesh botQuad, Mesh leftQuad, Mesh rightQuad, Mesh frontQuad, Mesh backQuad) {
         // Only quads that need to be rendered will be added to this list.
         var filteredQuadsMeshes = new List<Mesh>();
@@ -77,25 +77,25 @@ public class BlockBuilder {
          * If the block type is Air, then no need to add any quads to draw.
          */
         if (blockType != MeshUtils.BlockType.AIR) {
-            if (parentChunk != null) {
+            if (parentChunkMesh != null) {
 
                 /*
                  *  Passed offset from parent chunk has chunk's world location combined in offset. But calculating solid neighbours should be using
                  * local positions of the blocks in the chunk.
                  */
-                Vector3 blockLocalPos = offset - parentChunk.Location;
+                Vector3 blockLocalPos = offset - parentChunkMesh.Location;
                 
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y + 1, (int)blockLocalPos.z))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x, (int)blockLocalPos.y + 1, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(topQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y - 1, (int)blockLocalPos.z))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x, (int)blockLocalPos.y - 1, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(botQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x + 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x + 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(rightQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x - 1, (int)blockLocalPos.y, (int)blockLocalPos.z))
                     filteredQuadsMeshes.Add(leftQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z + 1))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z + 1))
                     filteredQuadsMeshes.Add(frontQuad);
-                if (!hasSolidNeighbour(parentChunk, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z - 1))
+                if (!hasSolidNeighbour(parentChunkMesh, (int)blockLocalPos.x, (int)blockLocalPos.y, (int)blockLocalPos.z - 1))
                     filteredQuadsMeshes.Add(backQuad);
             } else {
                 filteredQuadsMeshes = new List<Mesh> {
@@ -110,8 +110,8 @@ public class BlockBuilder {
         }
 
 
-        Debug.Log("Quads count: " + filteredQuadsMeshes.Count);
-        Debug.Log("Filtered quads meshes count: " + filteredQuadsMeshes.Count);
+        // Debug.Log("Quads count: " + filteredQuadsMeshes.Count);
+        // Debug.Log("Filtered quads meshes count: " + filteredQuadsMeshes.Count);
 
         if (filteredQuadsMeshes.Count == 0) return null;
 
@@ -127,15 +127,15 @@ public class BlockBuilder {
     ///     with the help of parent Chunk data. If a side has neighbour block, the face doesn't need to be rendered, thus
     ///     saves memory.
     /// </summary>
-    /// <param name="parentChunk">Parent chunk containing current block and neighbour blocks.</param>
+    /// <param name="parentChunkMesh">Parent chunk containing current block and neighbour blocks.</param>
     /// <param name="x">Neighbour block x offset.</param>
     /// <param name="y">Neighbour block y offset.</param>
     /// <param name="z">Neighbour block z offset.</param>
-    private bool hasSolidNeighbour(ChunkBuilder parentChunk, int x, int y, int z) {
+    private bool hasSolidNeighbour(ChunkMeshBuilder parentChunkMesh, int x, int y, int z) {
         // Check if the neighbour block is at the edge of the chunk.
-        if (x < 0 || x >= parentChunk.Width || y < 0 || y >= parentChunk.Height || z < 0 ||
-            z >= parentChunk.Depth) return false;
-        MeshUtils.BlockType blockType = parentChunk.BlocksTypes[x + parentChunk.Width * (y + parentChunk.Depth * z)];
+        if (x < 0 || x >= parentChunkMesh.Width || y < 0 || y >= parentChunkMesh.Height || z < 0 ||
+            z >= parentChunkMesh.Depth) return false;
+        MeshUtils.BlockType blockType = parentChunkMesh.BlocksTypes[x + parentChunkMesh.Width * (y + parentChunkMesh.Depth * z)];
 
         // Not just air, if the neighbour is water, the face still needs to be rendered, since water is half transparent.
         if (blockType == MeshUtils.BlockType.AIR || blockType == MeshUtils.BlockType.WATER) return false;
