@@ -133,10 +133,10 @@ public class ChunkMeshBuilder {
         int triStart = 0;
         int meshCount = Width * Height * Depth;
         int m = 0;
+        /*
+        * Building block meshes into chunk is a slow process. To boost up the performance, this project uses Burst compiler and Job system.  
+        */
         ProcessMeshDataJob jobs = new ProcessMeshDataJob {
-            /*
-         * Building block meshes into chunk is a slow process. To boost up the performance, this project uses Burst compiler and Job system.  
-         */
             vertexStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory),
             triStart = new NativeArray<int>(meshCount, Allocator.TempJob, NativeArrayOptions.UninitializedMemory)
         };
@@ -283,6 +283,8 @@ public class ChunkMeshBuilder {
              *  MeshData container contains streams within (configured in code above). First stream is the
              * vertices; second is the normal; third is the UVs.
              *
+             * These buffer arrays(streams) are configured outside of this struct.
+             * 
              *  These buffer arrays will be set with all the vertices, normals, and UVs data needed for the
              * final merged output mesh during execution below.
              */

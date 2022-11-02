@@ -1,22 +1,51 @@
+using System.Collections;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class WorldBuilder : MonoBehaviour {
     /// <summary>
-    ///     Minecraft should only have "ONE" world. Thus can make this member static.
     /// The dimensions determines how many chunks there are gonna be in the world.
     /// </summary>
-    private static Vector3 worldDimensions = new Vector3(3, 3, 3);
+    [SerializeField] private Vector3 worldDimensions = new Vector3(3, 3, 3);
 
     /// <summary>
     /// This determines the width, height, and depth of each chunks in the world.
     /// </summary>
-    private static Vector3 chunkDimensions = new Vector3(10, 10, 10);
+    [SerializeField] private Vector3 chunkDimensions = new Vector3(10, 10, 10);
 
     /// <summary>
     /// Prefab for generating chunks.
     /// </summary>
     [SerializeField] private GameObject chunkPrefab;
+    
+
+    [Header("Chunks' Perlin Settings")] 
+    [SerializeField] private float heightScale = 10;
+    [SerializeField] private float scale = 0.001f;
+    [SerializeField] private int octaves = 8;
+    [SerializeField] private float heightOffset = -18;
+
+    [Header("Loading Game")]
+    [SerializeField] private Camera loadingCamera;
+    [SerializeField] private Slider loadingProgressBar;
+
+    [Header("Player")]
+    [SerializeField] private GameObject fpsControllerPrefab;
+    [SerializeField] private float playerSpawnDropHeight = 5;
+    
     private void Start() {
+        if (loadingProgressBar != null) {
+            loadingProgressBar.maxValue = worldDimensions.x * worldDimensions.y * worldDimensions.z;
+        }
+        StartCoroutine(buildWorld());
+    }
+
+    /// <summary>
+    /// Using "yield return null", Unity will return back to execute this method's contents for each frame.
+    /// Thus each chunk gets generated per frame. This will reduce the waiting time for chunk generation. 
+    /// </summary>
+    /// <returns></returns>
+    private IEnumerator buildWorld() {
         // This ChunkBuilder gets built when passed into Chunk prefab's Chunk component.
         ChunkMeshBuilder chunkMeshBuilder = new ChunkMeshBuilder();
         
@@ -26,18 +55,50 @@ public class WorldBuilder : MonoBehaviour {
                     GameObject chunkObj = Instantiate(chunkPrefab);
                     
                     Vector3 position = new Vector3(x * chunkDimensions.x, y * chunkDimensions.y, z * chunkDimensions.z);
-                    
+
                     chunkMeshBuilder
                         .setLocation(position)
-                        .setDimensions(chunkDimensions);
+                        .setDimensions(chunkDimensions)
+                        .setPerlinAttribs(heightScale, scale, octaves, heightOffset);
                     
                     Chunk chunk = chunkObj.GetComponent<Chunk>();
                     chunk.genChunk(chunkMeshBuilder);
+
+                    // Increase the progress bar per chunk creation.
+                    if (loadingProgressBar != null) {
+                        loadingProgressBar.value++;
+                    }
+
+                    yield return null;
                 }
             }
         }
+
+        if (loadingProgressBar != null) {
+            loadPlayer();
+            deactivateLoadingUtils();
+        }
     }
 
-    public static Vector3 WorldDimensions => worldDimensions;
-    public static Vector3 ChunkDimensions => chunkDimensions;
+    private void deactivateLoadingUtils() {
+        loadingCamera.gameObject.SetActive(false);
+        loadingProgressBar.gameObject.SetActive(false);
+    }
+    private void loadPlayer() {
+        Instantiate(fpsControllerPrefab, getPlayerPosition(), Quaternion.identity);
+    }
+
+    /// <summary>
+    /// Improve workflow automation by calculating player position dynamically in response to the world.
+    /// </summary>
+    /// <returns>Player position.</returns>
+    private Vector3 getPlayerPosition() {
+        float xPos = (worldDimensions.x * chunkDimensions.x) / 2.0f;
+        float zPos = (worldDimensions.y * chunkDimensions.y) / 2.0f;
+        float yPos = MeshUtils.fBM(xPos, zPos, octaves, scale, heightScale, heightOffset) + playerSpawnDropHeight;
+        return new Vector3(xPos, yPos, zPos);
+    }
+
+    public Vector3 WorldDimensions => worldDimensions;
+    public Vector3 ChunkDimensions => chunkDimensions;
 }

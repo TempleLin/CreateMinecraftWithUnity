@@ -6,6 +6,9 @@ using UnityEngine;
  * 
  * A chunk is made up of blocks.
  */
+[RequireComponent(typeof(MeshFilter))]
+[RequireComponent(typeof(MeshRenderer))]
+[RequireComponent(typeof(MeshCollider))]
 public class Chunk : MonoBehaviour {
     /**
      * Material containing Minecraft texture.
@@ -15,27 +18,26 @@ public class Chunk : MonoBehaviour {
     /**
      * A chunk should have width, height, and depth.
      */
-    [SerializeField] private int width = 10; // X coordinate
+    private int width = 10; // X coordinate
+    private int height = 10; // Y coordinate
+    private int depth = 10; // Z coordinate
 
-    [SerializeField] private int height = 10; // Y coordinate
-    [SerializeField] private int depth = 10; // Z coordinate
-
-    [Header("Perlin Settings")] 
-    [SerializeField] private float heightScale = 10;
-    [SerializeField] private float scale = 0.001f;
-    [SerializeField] private int octaves = 8;
-    [SerializeField] private float heightOffset = -33;
+    private float heightScale = 10;
+    private float scale = 0.001f;
+    private int octaves = 8;
+    private float heightOffset = -18;
 
     /**
      * Take a look at Quad.cs to understand these fields.
      */
     private MeshFilter _meshFilter;
-
     private MeshRenderer _meshRenderer;
 
-    private void Start() {
+    /// <summary>
+    /// For adding collisions to the chunk.
+    /// </summary>
+    private MeshCollider _meshCollider;
 
-    }
 
     /// <summary>
     ///     Gets called from WorldBuilder. Let WorldBuilder decide all the attributes to generate this single chunk.
@@ -43,8 +45,10 @@ public class Chunk : MonoBehaviour {
     /// </summary>
     /// <param name="chunkMeshBuilder"></param>
     public void genChunk(ChunkMeshBuilder chunkMeshBuilder) {
-        _meshFilter = gameObject.AddComponent<MeshFilter>();
-        _meshRenderer = gameObject.AddComponent<MeshRenderer>();
+        _meshFilter = GetComponent<MeshFilter>();
+        _meshRenderer = GetComponent<MeshRenderer>();
+        _meshCollider = GetComponent<MeshCollider>();
+        
         _meshRenderer.material = atlas;
 
         Mesh newMesh = chunkMeshBuilder.build();
@@ -58,5 +62,6 @@ public class Chunk : MonoBehaviour {
         heightOffset = chunkMeshBuilder.PerlinHeightOffset;
      
         _meshFilter.mesh = newMesh;
+        _meshCollider.sharedMesh = newMesh;
     }
 }

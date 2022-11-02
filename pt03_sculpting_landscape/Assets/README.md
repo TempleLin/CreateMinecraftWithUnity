@@ -7,4 +7,6 @@
 
 - The original "Chunk" component in last Unity project has now been changed to "ChunkExample".
 A new "Chunk" component is created, with callable function "genChunk()" that creates chunk mesh which gets called from WorldBuilder. This is to enhance the workflow automation.
-- Lots of "XXXBuilder" components are renamed to "XXXMeshBuilder", since they return Mesh object as results. This makes them more clarified.  
+- Lots of "XXXBuilder" components are renamed to "XXXMeshBuilder", since they return Mesh object as results. This makes them more clarified.
+- MeshCollider component is also added to Chunk prefab to give collisions and let player walk on the chunk's blocks.
+- Old FPS Controller package with old input system is imported for walking on the world.
