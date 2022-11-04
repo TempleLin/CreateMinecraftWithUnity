@@ -48,16 +48,13 @@ public class ChunkMeshBuilder {
     /// This member gets set when .build() gets called. As needed content blocks might
     /// be different everytime a new chunk gets built.
     public MeshUtils.BlockType[] BlocksTypes { get; private set; }
-    
+
     /// <summary>
     /// These are attributes for generating heights for the chunk with Perlin Noise & Fractional Brownian Motion.
     /// </summary>
-    private float perlinHeightScale = 10;
-    private float perlinScale = 0.001f;
-    private int perlinOctaves = 8;
-    private float perlinHeightOffset = -33;
+    private PerlinGrapher grassLayer;
+    private PerlinGrapher stoneLayer;
 
-    
     public ChunkMeshBuilder() {
 
     }
@@ -85,12 +82,14 @@ public class ChunkMeshBuilder {
         this.depth = (int)dimensions.z;
         return this;
     }
+    
+    public ChunkMeshBuilder setGrassLayerAttribs(PerlinGrapher layer) {
+        grassLayer = layer;
+        return this;
+    }
 
-    public ChunkMeshBuilder setPerlinAttribs(float heightScale, float scale, int octaves, float heightOffset) {
-        perlinHeightScale = heightScale;
-        perlinScale = scale;
-        perlinOctaves = octaves;
-        perlinHeightOffset = heightOffset;
+    public ChunkMeshBuilder setStoneLayerAttribs(PerlinGrapher layer) {
+        stoneLayer = layer;
         return this;
     }
     
@@ -110,17 +109,21 @@ public class ChunkMeshBuilder {
             int y = (i / Width) % Height + (int)location.y;
             int z = i / (Width * Height) + (int)location.z;
 
-            int surfaceHeight = (int) MeshUtils.fBM(x, z, perlinOctaves, perlinScale, perlinHeightScale, perlinHeightOffset);
+            int grassLayerHeight = (int) MeshUtils.fBM(x, z, grassLayer.Octaves, grassLayer.Scale, grassLayer.HeightScale, grassLayer.HeightOffset);
+            int stoneLayerHeight = (int) MeshUtils.fBM(x, z, stoneLayer.Octaves, stoneLayer.Scale, stoneLayer.HeightScale, stoneLayer.HeightOffset);
+
+            Debug.Log("Grass Layer Height: " + grassLayerHeight);
+            Debug.Log("Stone Layer Height: " + stoneLayerHeight);
             
             /*
-             *  If the calculated height of the Perlin Noise wave is equal to the height of the block, it means the block will be the heighest/surface block.
+             *  If the calculated height of the Perlin Noise wave is equal to the height of the grass layer height, it means the block will be the heighest/surface block.
              * Then, make it surface blocks (such as grass).
-             *  If the wave is higher than the block, it means there will be blocks on top of the current one. Make it blocks that are at lower surface.
-             *  If the wave is lower than the block, it means this block shouldn't be drawn. Thus make it air.
              */
-            if (surfaceHeight == y) {
+            if (grassLayerHeight == y) {
                 BlocksTypes[i] = MeshUtils.BlockType.GRASSSIDE;
-            } else if (surfaceHeight > y) {
+            } else if (stoneLayerHeight > y && UnityEngine.Random.Range(0.0f, 1.0f) < stoneLayer.Probability) {
+                BlocksTypes[i] = MeshUtils.BlockType.STONE;
+            } else if (grassLayerHeight > y) {
                 BlocksTypes[i] = MeshUtils.BlockType.DIRT;
             } else {
                 BlocksTypes[i] = MeshUtils.BlockType.AIR;
@@ -162,26 +165,29 @@ public class ChunkMeshBuilder {
                     /*
                      * Block mesh doesn't need to be built if it's air. Make it null instead.
                      * 
-                     * Location of the chunk should also be considered as block's offset.
+                     * Location of the chunk should also be considered as part of block's total offset.
                      */
                     Mesh blockMesh = null;
+                    Vector3 blockOffset = new Vector3(x, y, z) + location;
                     switch (blockType) {
                         // Block mesh doesn't need to be built if it's air. Make it null.
                         case MeshUtils.BlockType.AIR:
                             break;
                         case MeshUtils.BlockType.DIRT:
-                            blockMesh = blockMeshBuilder.build(this, new Vector3(x, y, z) + location, blockType);
+                            blockMesh = blockMeshBuilder.build(this, blockOffset, blockType);
                             break;
                         case MeshUtils.BlockType.GRASSSIDE:
                             // Grass has different top, sides, and bottom.
-                            blockMesh = blockMeshBuilder.build(this, new Vector3(x, y, z) + location,
+                            blockMesh = blockMeshBuilder.build(this, blockOffset,
                                 MeshUtils.BlockType.GRASSTOP,
                                 MeshUtils.BlockType.GRASSSIDE, MeshUtils.BlockType.DIRT);
                             break;
+                        case MeshUtils.BlockType.STONE:
+                            blockMesh = blockMeshBuilder.build(this, blockOffset,
+                                MeshUtils.BlockType.STONE);
+                            break;
                     }
-                    // Mesh blockMesh = blockType is MeshUtils.BlockType.AIR
-                    //     ? null
-                    //     : blockMeshBuilder.build(this, new Vector3(x, y, z) + location, blockType);
+
 
                     blockMeshes[x, y, z] = blockMesh;
                     if (blockMesh != null) {
@@ -372,8 +378,5 @@ public class ChunkMeshBuilder {
 
     public Vector3 Location => location;
 
-    public float PerlinHeightScale => perlinHeightScale;
-    public float PerlinScale => perlinScale;
-    public int PerlinOctaves => perlinOctaves;
-    public float PerlinHeightOffset => perlinHeightOffset;
+    public PerlinGrapher GrassLayer => grassLayer;
 }
