@@ -57,6 +57,7 @@ public class ChunkMeshBuilder {
     private PerlinGrapher diamondTopLayer;
     private PerlinGrapher diamondBotLayer;
     private Perlin3DGrapher cave3DLayer;
+    private PerlinGrapher caveTopLayer;
 
     public ChunkMeshBuilder() {
 
@@ -102,8 +103,9 @@ public class ChunkMeshBuilder {
         return this;
     }
 
-    public ChunkMeshBuilder setCaveLayer3DAttribs(Perlin3DGrapher cave3DLayer) {
+    public ChunkMeshBuilder setCaveLayersAttribs(Perlin3DGrapher cave3DLayer, PerlinGrapher caveTopLayer) {
         this.cave3DLayer = cave3DLayer;
+        this.caveTopLayer = caveTopLayer;
         return this;
     }
     
@@ -132,6 +134,8 @@ public class ChunkMeshBuilder {
 
             int digCave = (int)MeshUtils.fBM3D(x, y, z, cave3DLayer.Octaves, cave3DLayer.Scale, cave3DLayer.HeightScale,
                 cave3DLayer.HeightOffset);
+            int caveTopLayerHeight = (int)MeshUtils.fBM(x, z, caveTopLayer.Octaves, caveTopLayer.Scale, caveTopLayer.HeightScale,
+                caveTopLayer.HeightOffset);
 
             // Debug.Log("Grass Layer Height: " + grassLayerHeight);
             // Debug.Log("Stone Layer Height: " + stoneLayerHeight);
@@ -142,12 +146,27 @@ public class ChunkMeshBuilder {
              *
              * Layers with lower height should have higher privilege in the if/else if statements, or they won't get the chance to spawn blocks.
              */
+            if (y == 0) {
+                BlocksTypes[i] = MeshUtils.BlockType.BEDROCK;
+                /*
+                * If the block should be bedrock, there's no need to make decisions further.
+                */
+                continue;
+            }
+
+            if (cave3DLayer != null) {
+                if (digCave < cave3DLayer.DrawCutOff && caveTopLayerHeight > y) {
+                    BlocksTypes[i] = MeshUtils.BlockType.AIR;
+                    continue;
+                }
+            }
+            
             if (grassLayerHeight == y) {
                 BlocksTypes[i] = MeshUtils.BlockType.GRASSSIDE;
             } else if (diamondTopLayerHeight > y && diamondBotLayerHeight < y) {
                 float random = UnityEngine.Random.Range(0.0f, 1.0f);
                 if (random < diamondTopLayer.Probability && random > diamondBotLayer.Probability) {
-                    Debug.Log("Diamond spawned!");
+                    // Debug.Log("Diamond spawned!");
                     BlocksTypes[i] = MeshUtils.BlockType.DIAMOND;
                 } else {
                     BlocksTypes[i] = MeshUtils.BlockType.STONE;
@@ -158,15 +177,6 @@ public class ChunkMeshBuilder {
                 BlocksTypes[i] = MeshUtils.BlockType.DIRT;
             } else {
                 BlocksTypes[i] = MeshUtils.BlockType.AIR;
-            }
-
-            /*
-             * Digging caves needs to be after all blocks are configured/generated.
-             */
-            if (cave3DLayer != null) {
-                if (digCave < cave3DLayer.DrawCutOff) {
-                    BlocksTypes[i] = MeshUtils.BlockType.AIR;
-                }
             }
         }
     }
@@ -228,6 +238,12 @@ public class ChunkMeshBuilder {
                             break;
                         case MeshUtils.BlockType.DIAMOND:
                             blockMesh = blockMeshBuilder.build(this, blockOffset, MeshUtils.BlockType.DIAMOND);
+                            break;
+                        case MeshUtils.BlockType.BEDROCK:
+                            blockMesh = blockMeshBuilder.build(this, blockOffset, MeshUtils.BlockType.BEDROCK);
+                            break;
+                        default:
+                            Debug.LogWarning("This block type: " + blockType + " hasn't been configured yet!");
                             break;
                     }
 

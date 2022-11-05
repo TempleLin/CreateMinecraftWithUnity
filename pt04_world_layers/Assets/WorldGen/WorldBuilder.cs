@@ -27,6 +27,10 @@ public class WorldBuilder : MonoBehaviour {
     /// Cave uses 3D Perlin Noise to generate.
     /// </summary>
     [SerializeField] private Perlin3DGrapher cave3DLayer;
+    /// <summary>
+    /// Limiting the height of the cave 3D layer, or else the generated caves might dig up lots of blocks on the surface.
+    /// </summary>
+    [SerializeField] private PerlinGrapher caveTopLayer;
 
     [Header("Loading Game")]
     [SerializeField] private Camera loadingCamera;
@@ -65,7 +69,7 @@ public class WorldBuilder : MonoBehaviour {
                         .setGrassLayerAttribs(grassLayer)
                         .setStoneLayerAttribs(stoneLayer)
                         .setDiamondLayersAttribs(diamondTopLayer, diamondBotLayer)
-                        .setCaveLayer3DAttribs(cave3DLayer);
+                        .setCaveLayersAttribs(cave3DLayer, caveTopLayer);
                     
                     Chunk chunk = chunkObj.GetComponent<Chunk>();
                     chunk.genChunk(chunkMeshBuilder);

@@ -46,8 +46,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   dimensions: {x: 10, y: 10, z: 10}
   heightScale: 2
-  scale: 0.038
+  scale: 0.044
   octaves: 3
   heightOffset: 1.24
   visualize: 0
-  drawCutOff: 4
+  drawCutOff: 3.95
