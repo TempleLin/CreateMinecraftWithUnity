@@ -168,4 +168,28 @@ public static class MeshUtils {
 
         return total + heightOffset;
     }
+
+    /// <summary>
+    ///     Algorithm for generating 3D Perlin Noise with Fractional Brownian Motion; it is used to generate caves into the chunks in this project. 
+    /// </summary>
+    /// <param name="x"></param>
+    /// <param name="y"></param>
+    /// <param name="z"></param>
+    /// <param name="octaves"></param>
+    /// <param name="scale"></param>
+    /// <param name="heightScale"></param>
+    /// <param name="heightOffset"></param>
+    /// <returns></returns>
+    public static float fBM3D(float x, float y, float z, int octaves, float scale, float heightScale, float heightOffset) {
+        /*
+         * Generate six sides of fBM value
+         */
+        float xy = fBM(x, y, octaves, scale, heightScale, heightOffset);
+        float xz = fBM(x, z, octaves, scale, heightScale, heightOffset);
+        float yz = fBM(y, z, octaves, scale, heightScale, heightOffset);
+        float yx = fBM(y, x, octaves, scale, heightScale, heightOffset);
+        float zy = fBM(z, y, octaves, scale, heightScale, heightOffset);
+        float zx = fBM(z, x, octaves, scale, heightScale, heightOffset);
+        return (xy + xz + yz + yx + zy + zx) / 6.0f;
+    }
 }
