@@ -56,6 +56,7 @@ public class ChunkMeshBuilder {
     private PerlinGrapher stoneLayer;
     private PerlinGrapher diamondTopLayer;
     private PerlinGrapher diamondBotLayer;
+    private Perlin3DGrapher cave3DLayer;
 
     public ChunkMeshBuilder() {
 
@@ -100,6 +101,11 @@ public class ChunkMeshBuilder {
         diamondBotLayer = botLayer;
         return this;
     }
+
+    public ChunkMeshBuilder setCaveLayer3DAttribs(Perlin3DGrapher cave3DLayer) {
+        this.cave3DLayer = cave3DLayer;
+        return this;
+    }
     
     /// <summary>
     ///     This is the essential function to do the landscaping. It configures all blocks' data in chunk.
@@ -121,8 +127,11 @@ public class ChunkMeshBuilder {
             int stoneLayerHeight = (int) MeshUtils.fBM(x, z, stoneLayer.Octaves, stoneLayer.Scale, stoneLayer.HeightScale, stoneLayer.HeightOffset);
             int diamondTopLayerHeight = (int) MeshUtils.fBM(x, z, diamondTopLayer.Octaves, diamondTopLayer.Scale,
                 diamondTopLayer.HeightScale, diamondTopLayer.HeightOffset);
-            int diamondBotLayerHeight = (int)MeshUtils.fBM(x, z, diamondBotLayer.Octaves, diamondBotLayer.Scale,
+            int diamondBotLayerHeight = (int) MeshUtils.fBM(x, z, diamondBotLayer.Octaves, diamondBotLayer.Scale,
                 diamondBotLayer.HeightScale, diamondBotLayer.HeightOffset);
+
+            int digCave = (int)MeshUtils.fBM3D(x, y, z, cave3DLayer.Octaves, cave3DLayer.Scale, cave3DLayer.HeightScale,
+                cave3DLayer.HeightOffset);
 
             // Debug.Log("Grass Layer Height: " + grassLayerHeight);
             // Debug.Log("Stone Layer Height: " + stoneLayerHeight);
@@ -149,6 +158,15 @@ public class ChunkMeshBuilder {
                 BlocksTypes[i] = MeshUtils.BlockType.DIRT;
             } else {
                 BlocksTypes[i] = MeshUtils.BlockType.AIR;
+            }
+
+            /*
+             * Digging caves needs to be after all blocks are configured/generated.
+             */
+            if (cave3DLayer != null) {
+                if (digCave < cave3DLayer.DrawCutOff) {
+                    BlocksTypes[i] = MeshUtils.BlockType.AIR;
+                }
             }
         }
     }

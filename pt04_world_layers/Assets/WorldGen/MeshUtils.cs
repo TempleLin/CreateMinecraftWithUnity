@@ -148,7 +148,8 @@ public static class MeshUtils {
 
     /// <summary>
     ///     Generating height value from given x and z value, using Perlin Noise. Containing Fractional Brownian Motion algorithm
-    /// in generation.
+    /// in generation. (Basically, Fractional Brownian Motion combines multiple Perlin Noises and produces more complex and smoother
+    /// Perlin Noise, which is more suitable for terrain generation.)
     /// Article explaining Fractional Brownian Motion: https://iquilezles.org/articles/fbm/ 
     /// </summary>
     /// <param name="x"></param>
