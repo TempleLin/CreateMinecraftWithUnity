@@ -21,6 +21,8 @@ public class WorldBuilder : MonoBehaviour {
     [Header("Perlin Graph Layers")]
     [SerializeField] private PerlinGrapher grassLayer;
     [SerializeField] private PerlinGrapher stoneLayer;
+    [SerializeField] private PerlinGrapher diamondTopLayer;
+    [SerializeField] private PerlinGrapher diamondBotLayer;
 
     [Header("Loading Game")]
     [SerializeField] private Camera loadingCamera;
@@ -57,7 +59,8 @@ public class WorldBuilder : MonoBehaviour {
                         .setLocation(position)
                         .setDimensions(chunkDimensions)
                         .setGrassLayerAttribs(grassLayer)
-                        .setStoneLayerAttribs(stoneLayer);
+                        .setStoneLayerAttribs(stoneLayer)
+                        .setDiamondLayersAttribs(diamondTopLayer, diamondBotLayer);
                     
                     Chunk chunk = chunkObj.GetComponent<Chunk>();
                     chunk.genChunk(chunkMeshBuilder);

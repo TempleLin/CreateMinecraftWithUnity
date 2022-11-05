@@ -54,6 +54,8 @@ public class ChunkMeshBuilder {
     /// </summary>
     private PerlinGrapher grassLayer;
     private PerlinGrapher stoneLayer;
+    private PerlinGrapher diamondTopLayer;
+    private PerlinGrapher diamondBotLayer;
 
     public ChunkMeshBuilder() {
 
@@ -92,6 +94,12 @@ public class ChunkMeshBuilder {
         stoneLayer = layer;
         return this;
     }
+
+    public ChunkMeshBuilder setDiamondLayersAttribs(PerlinGrapher topLayer, PerlinGrapher botLayer) {
+        diamondTopLayer = topLayer;
+        diamondBotLayer = botLayer;
+        return this;
+    }
     
     /// <summary>
     ///     This is the essential function to do the landscaping. It configures all blocks' data in chunk.
@@ -111,16 +119,30 @@ public class ChunkMeshBuilder {
 
             int grassLayerHeight = (int) MeshUtils.fBM(x, z, grassLayer.Octaves, grassLayer.Scale, grassLayer.HeightScale, grassLayer.HeightOffset);
             int stoneLayerHeight = (int) MeshUtils.fBM(x, z, stoneLayer.Octaves, stoneLayer.Scale, stoneLayer.HeightScale, stoneLayer.HeightOffset);
+            int diamondTopLayerHeight = (int) MeshUtils.fBM(x, z, diamondTopLayer.Octaves, diamondTopLayer.Scale,
+                diamondTopLayer.HeightScale, diamondTopLayer.HeightOffset);
+            int diamondBotLayerHeight = (int)MeshUtils.fBM(x, z, diamondBotLayer.Octaves, diamondBotLayer.Scale,
+                diamondBotLayer.HeightScale, diamondBotLayer.HeightOffset);
 
-            Debug.Log("Grass Layer Height: " + grassLayerHeight);
-            Debug.Log("Stone Layer Height: " + stoneLayerHeight);
+            // Debug.Log("Grass Layer Height: " + grassLayerHeight);
+            // Debug.Log("Stone Layer Height: " + stoneLayerHeight);
             
             /*
              *  If the calculated height of the Perlin Noise wave is equal to the height of the grass layer height, it means the block will be the heighest/surface block.
              * Then, make it surface blocks (such as grass).
+             *
+             * Layers with lower height should have higher privilege in the if/else if statements, or they won't get the chance to spawn blocks.
              */
             if (grassLayerHeight == y) {
                 BlocksTypes[i] = MeshUtils.BlockType.GRASSSIDE;
+            } else if (diamondTopLayerHeight > y && diamondBotLayerHeight < y) {
+                float random = UnityEngine.Random.Range(0.0f, 1.0f);
+                if (random < diamondTopLayer.Probability && random > diamondBotLayer.Probability) {
+                    Debug.Log("Diamond spawned!");
+                    BlocksTypes[i] = MeshUtils.BlockType.DIAMOND;
+                } else {
+                    BlocksTypes[i] = MeshUtils.BlockType.STONE;
+                }
             } else if (stoneLayerHeight > y && UnityEngine.Random.Range(0.0f, 1.0f) < stoneLayer.Probability) {
                 BlocksTypes[i] = MeshUtils.BlockType.STONE;
             } else if (grassLayerHeight > y) {
@@ -185,6 +207,9 @@ public class ChunkMeshBuilder {
                         case MeshUtils.BlockType.STONE:
                             blockMesh = blockMeshBuilder.build(this, blockOffset,
                                 MeshUtils.BlockType.STONE);
+                            break;
+                        case MeshUtils.BlockType.DIAMOND:
+                            blockMesh = blockMeshBuilder.build(this, blockOffset, MeshUtils.BlockType.DIAMOND);
                             break;
                     }
 

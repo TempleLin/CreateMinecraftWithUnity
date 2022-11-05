@@ -15,4 +15,4 @@ Giving different increment value to Perlin Noise gives different details/bump le
 
 Different increment value is like expanding or reducing size of the noise.
 
-Noises with different incrementation, frequency, and amplitude, can be combined to produce a different noise with more randomness, that suits more to create a better terrain.
+Noises with different incrementation, frequency, and amplitude, can be combined to produce a different noise with more randomness, that suits more to create a better terrain. Fractal Brownian Motion is an algorithm to do such combinations.
