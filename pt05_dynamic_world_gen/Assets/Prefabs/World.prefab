@@ -64,6 +64,7 @@ MonoBehaviour:
   fpsControllerPrefab: {fileID: 100000, guid: 5e9e851c0e142814dac026a256ba2ac0, type: 3}
   playerSpawnDropHeight: 5
   chunkColumnsGenRadius: 0
+  worldUpdateSecsInterval: 0.5
 --- !u!1001 &1774933707
 PrefabInstance:
   m_ObjectHideFlags: 0

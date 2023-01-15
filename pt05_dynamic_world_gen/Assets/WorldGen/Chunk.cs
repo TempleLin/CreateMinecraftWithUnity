@@ -58,4 +58,6 @@ public class Chunk : MonoBehaviour {
         _meshFilter.mesh = newMesh;
         _meshCollider.sharedMesh = newMesh;
     }
+
+    public MeshRenderer MeshRenderer => _meshRenderer;
 }

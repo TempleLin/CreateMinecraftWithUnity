@@ -165,7 +165,13 @@ public class WorldBuilder : MonoBehaviour {
         void hideChunkColumn(int x, int z) {
             for (int y = 0; y < worldDimensions.y; y++) {
                 Vector3Int pos = new Vector3Int(x, y * (int)chunkDimensions.y, z);
-                if (chunkChecker.Contains(pos)) chunks[pos].gameObject.SetActive(false);
+                if (chunkChecker.Contains(pos)) {
+                    /*
+                     * Disabling the mesh rendering component takes less resource than de-activating the whole chunk's gameobject.
+                     */
+                    chunks[pos].MeshRenderer.enabled = false;
+                    // chunks[pos].gameObject.SetActive(false);
+                }
             }
         }
 
@@ -235,7 +241,8 @@ public class WorldBuilder : MonoBehaviour {
                 chunkChecker.Add(_position);
                 chunks.Add(_position, chunk);
             } else {
-                chunks[_position].gameObject.SetActive(true);
+                chunks[_position].MeshRenderer.enabled = true;
+                // chunks[_position].gameObject.SetActive(true);
             }
         }
 
